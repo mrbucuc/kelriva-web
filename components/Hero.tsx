@@ -197,7 +197,9 @@ export default function Hero({ onBookCall }: HeroProps) {
           animation: 'fadeUp 1s ease .3s forwards',
         }}>
           <span style={{ display: 'block', width: 44, height: 1, background: 'linear-gradient(90deg,transparent,#d63545)' }} />
-          kelriva.ai · London, UK · Est. 2026
+          London, UK
+          <span style={{ opacity: .4 }}>·</span>
+          Est. 2026
           <span style={{ animation: 'blink 1.2s step-end infinite' }}>_</span>
         </div>
 

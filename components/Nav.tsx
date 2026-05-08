@@ -45,24 +45,6 @@ export default function Nav({ onBookCall }: NavProps) {
           height={39}
           style={{ display: 'block' }}
         />
-        <div style={{ lineHeight: 1 }}>
-          <div style={{
-            fontFamily: 'var(--font-instrument), sans-serif',
-            fontWeight: 700,
-            fontSize: '1.12rem',
-            color: '#ffffff',
-            letterSpacing: '.04em',
-          }}>Kelriva AI</div>
-          <div style={{
-            fontFamily: 'var(--font-jetbrains), monospace',
-            fontSize: '.56rem',
-            color: '#d63545',
-            letterSpacing: '.22em',
-            textTransform: 'uppercase',
-            marginTop: '.18rem',
-            opacity: .75,
-          }}>AI Consultancy</div>
-        </div>
       </div>
 
       {/* Links */}
