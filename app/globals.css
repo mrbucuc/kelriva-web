@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
+@theme {
+  --color-ink:    #0d0a08;
+  --color-ink2:   #150f09;
+  --color-ink3:   #1c1610;
+  --color-rose:   #d63545;
+  --color-rose2:  #a01828;
+  --color-rose3:  #e8404f;
+  --color-fog:    #ede5dc;
+  --color-muted:  #6b5548;
+  --color-cgreen: #00e09c;
+  --color-camber: #f5b642;
+  --color-violet: #a78bfa;
+
+  --font-sans:  'Instrument Sans', 'Bricolage Grotesque', sans-serif;
+  --font-serif: 'Cormorant Garamond', serif;
+  --font-mono:  'JetBrains Mono', monospace;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+html { scroll-behavior: smooth; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #0d0a08;
+  color: #ede5dc;
+  font-family: 'Instrument Sans', 'Bricolage Grotesque', sans-serif;
+  overflow-x: hidden;
+  line-height: 1.65;
 }
+
+::selection { background: #d63545; color: #0d0a08; }
+a { text-decoration: none; color: inherit; }
+
+/* Nav link underline reveal */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 0; right: 0;
+  height: 1px;
+  background: #d63545;
+  transform: scaleX(0);
+  transition: transform .25s var(--ease-out);
+}
+.nav-link:hover::after { transform: scaleX(1); }
+
+/* Pulsing dot */
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(214,53,69,.4); }
+  50%      { box-shadow: 0 0 0 6px rgba(214,53,69,0); }
+}
+
+/* Status blink */
+@keyframes statusBlink {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .4; }
+}
+
+/* Hero scroll line */
+@keyframes scrollLine {
+  0%   { width: 0; opacity: 1; }
+  60%  { width: 40px; }
+  100% { width: 40px; opacity: 0; }
+}
+
+/* CTA ring expand */
+@keyframes ringExpand {
+  0%   { opacity: .6; transform: translate(-50%,-50%) scale(.97); }
+  100% { opacity: 0;  transform: translate(-50%,-50%) scale(1.08); }
+}
+
+/* Blinking cursor */
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+/* Chat message appear */
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Typing dots */
+@keyframes typingDot {
+  0%,60%,100% { transform: translateY(0); }
+  30%          { transform: translateY(-5px); }
+}
+
+/* Hero entrance */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Grain */
+@keyframes grainAnim {
+  0%   { transform: translate(0,0); }
+  25%  { transform: translate(-1%,1%); }
+  50%  { transform: translate(1%,-1%); }
+  75%  { transform: translate(-2%,2%); }
+  100% { transform: translate(1%,0); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0d0a08; }
+::-webkit-scrollbar-thumb { background: rgba(214,53,69,.2); }
