@@ -62,6 +62,7 @@ export default function VideoSection() {
           controls={false}
           autoPlay
           loop
+          numberOfSharedAudioTags={0}
           acknowledgeRemotionLicense
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
