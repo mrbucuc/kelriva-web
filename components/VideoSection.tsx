@@ -1,36 +1,16 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
-import { Player, type PlayerRef } from '@remotion/player'
-import { KelrivaLaunch } from './VideoComposition'
-
-const DURATION = 360
-const FPS      = 30
-const W        = 1280
-const H        = 720
+import { useState, useRef } from 'react'
 
 export default function VideoSection() {
-  const playerRef = useRef<PlayerRef>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
   const [playing, setPlaying] = useState(true)
 
-  useEffect(() => {
-    const attempt = () => {
-      const p = playerRef.current
-      if (!p) return
-      p.play()
-      setPlaying(true)
-    }
-    // Try immediately, then retry after a short delay as fallback
-    attempt()
-    const t = setTimeout(attempt, 300)
-    return () => clearTimeout(t)
-  }, [])
-
   const toggle = () => {
-    const p = playerRef.current
-    if (!p) return
-    if (playing) { p.pause(); setPlaying(false) }
-    else          { p.play();  setPlaying(true)  }
+    const v = videoRef.current
+    if (!v) return
+    if (playing) { v.pause(); setPlaying(false) }
+    else          { v.play();  setPlaying(true)  }
   }
 
   return (
@@ -42,32 +22,23 @@ export default function VideoSection() {
         background: '#0d0a08',
       }}
     >
-      {/* Scale video to cover the full viewport */}
-      <div style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width:  `max(100vw, calc(100vh * ${W / H}))`,
-        height: `max(100vh, calc(100vw * ${H / W}))`,
-      }}>
-        <Player
-          ref={playerRef}
-          component={KelrivaLaunch}
-          durationInFrames={DURATION}
-          fps={FPS}
-          compositionWidth={W}
-          compositionHeight={H}
-          style={{ width: '100%', height: '100%' }}
-          controls={false}
-          autoPlay
-          loop
-          numberOfSharedAudioTags={0}
-          acknowledgeRemotionLicense
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
-        />
-      </div>
+      <video
+        ref={videoRef}
+        src="/kelriva-launch.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 'max(100vw, calc(100vh * 1.7778))',
+          height: 'max(100vh, calc(100vw * 0.5625))',
+          objectFit: 'cover',
+        }}
+      />
 
       {/* Pause / play — bottom-right, appears on hover */}
       <div

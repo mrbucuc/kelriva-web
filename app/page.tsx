@@ -5,10 +5,8 @@ import GrainOverlay from '@/components/GrainOverlay'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import QuoteStrip from '@/components/QuoteStrip'
-import dynamic from 'next/dynamic'
 import Services from '@/components/Services'
-
-const VideoSection = dynamic(() => import('@/components/VideoSection'), { ssr: false })
+import VideoSection from '@/components/VideoSection'
 import ProofNumbers from '@/components/ProofNumbers'
 import Verticals from '@/components/Verticals'
 import Process from '@/components/Process'
