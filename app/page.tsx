@@ -26,9 +26,9 @@ export default function Page() {
     <>
       <GrainOverlay />
       <Nav onBookCall={openChat} />
+      <VideoSection />
       <Hero onBookCall={openChat} />
       <QuoteStrip />
-      <VideoSection />
       <Services />
       <ProofNumbers />
       <Verticals />
