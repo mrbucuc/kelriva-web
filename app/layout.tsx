@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Bricolage_Grotesque, Cormorant_Garamond, JetBrains_Mono, Instrument_Sans } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 
 const bricolage = Bricolage_Grotesque({
@@ -52,6 +53,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${bricolage.variable} ${cormorant.variable} ${jetbrains.variable} ${instrument.variable}`}
     >
+      <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-NQ7ENKQ1DK"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-NQ7ENKQ1DK');
+          `}
+        </Script>
+      </head>
       <body style={{ fontFamily: `var(--font-instrument), 'Instrument Sans', 'Bricolage Grotesque', sans-serif` }}>
         {children}
       </body>
