@@ -37,6 +37,7 @@ export const metadata: Metadata = {
   description:
     'B2B AI consultancy building bespoke AI systems for enterprise: Intelligent Document Processing, AI Workflow Automation, and Data Analytics. Fixed-fee. Delivered in weeks.',
   keywords: ['AI consultancy', 'intelligent document processing', 'LangGraph', 'AI automation', 'UK AI'],
+  metadataBase: new URL('https://kelriva.ai'),
   openGraph: {
     title: 'Kelriva AI — From data to decision. Instantly.',
     description: 'Bespoke AI systems for enterprise. IDP, agentic workflows, BI. Fixed-fee. Weeks not months.',
@@ -44,7 +45,76 @@ export const metadata: Metadata = {
     siteName: 'Kelriva AI',
     locale: 'en_GB',
     type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Kelriva AI — From data to decision. Instantly.',
+      },
+    ],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kelriva AI — From data to decision. Instantly.',
+    description: 'Bespoke AI systems for enterprise. IDP, agentic workflows, BI. Fixed-fee. Weeks not months.',
+    images: ['/og-image.png'],
+  },
+  alternates: {
+    canonical: 'https://kelriva.ai',
+  },
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': 'https://kelriva.ai/#organization',
+      name: 'Kelriva AI',
+      url: 'https://kelriva.ai',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://kelriva.ai/lockup-white.png',
+      },
+      description:
+        'B2B AI consultancy building bespoke AI systems for enterprise: Intelligent Document Processing, AI Workflow Automation, and Data Analytics.',
+      areaServed: 'GB',
+      knowsAbout: [
+        'Artificial Intelligence',
+        'Intelligent Document Processing',
+        'AI Workflow Automation',
+        'Data Analytics',
+        'LangGraph',
+        'Enterprise AI',
+      ],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://kelriva.ai/#website',
+      url: 'https://kelriva.ai',
+      name: 'Kelriva AI',
+      publisher: {
+        '@id': 'https://kelriva.ai/#organization',
+      },
+    },
+    {
+      '@type': 'Service',
+      '@id': 'https://kelriva.ai/#service',
+      name: 'Bespoke AI Systems for Enterprise',
+      provider: {
+        '@id': 'https://kelriva.ai/#organization',
+      },
+      description:
+        'Fixed-fee, bespoke AI systems delivered in weeks. Specialising in Intelligent Document Processing, Agentic Workflow Automation, and Data Analytics for B2B enterprise.',
+      serviceType: 'AI Consultancy',
+      areaServed: 'GB',
+      offers: {
+        '@type': 'Offer',
+        pricingType: 'Fixed fee',
+      },
+    },
+  ],
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -66,6 +136,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             gtag('config', 'G-NQ7ENKQ1DK');
           `}
         </Script>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body style={{ fontFamily: `var(--font-instrument), 'Instrument Sans', 'Bricolage Grotesque', sans-serif` }}>
         {children}
