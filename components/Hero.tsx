@@ -177,9 +177,8 @@ export default function Hero({ onBookCall }: HeroProps) {
         transform: 'translateY(-50%)',
         zIndex: 2, opacity: .04, pointerEvents: 'none',
       }}>
-        <Image src="/lockup-white.png" alt="" aria-hidden width={320} height={200} style={{ width: 320, height: 'auto' }} />
+        <Image src="/lockup-white.png" alt="Kelriva AI" aria-hidden width={320} height={200} style={{ width: 320, height: 'auto' }} />   
       </div>
-
       {/* Content */}
       <div style={{ position: 'relative', zIndex: 3, maxWidth: 780 }}>
         {/* Eyebrow */}
