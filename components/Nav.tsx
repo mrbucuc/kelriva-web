@@ -39,10 +39,10 @@ export default function Nav({ onBookCall }: NavProps) {
         style={{ display: 'flex', alignItems: 'center', gap: '.85rem', cursor: 'pointer' }}
       >
         <Image
-          src="/mark-white.png"
+          src="/mark-kelriva.png"
           alt="Kelriva AI"
-          width={48}
-          height={52}
+          width={54}
+          height={59}
           style={{ display: 'block' }}
         />
       </div>
