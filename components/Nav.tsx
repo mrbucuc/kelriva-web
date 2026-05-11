@@ -41,8 +41,8 @@ export default function Nav({ onBookCall }: NavProps) {
         <Image
           src="/mark-white.png"
           alt="Kelriva AI"
-          width={36}
-          height={39}
+          width={48}
+          height={52}
           style={{ display: 'block' }}
         />
       </div>
@@ -51,7 +51,7 @@ export default function Nav({ onBookCall }: NavProps) {
       <ul style={{ display: 'flex', gap: '2.5rem', listStyle: 'none' }} className="nav-links-desktop">
         {[
           { label: 'Services',  href: '#services'  },
-          { label: 'Verticals', href: '#verticals' },
+          { label: 'Case Studies', href: '#case-studies' },
           { label: 'Process',   href: '#process'   },
           { label: 'Contact',   href: '#contact'   },
         ].map(({ label, href }) => (

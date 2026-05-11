@@ -8,7 +8,7 @@ import QuoteStrip from '@/components/QuoteStrip'
 import Services from '@/components/Services'
 import VideoSection from '@/components/VideoSection'
 import ProofNumbers from '@/components/ProofNumbers'
-import Verticals from '@/components/Verticals'
+import CaseStudies from '@/components/CaseStudies'
 import Process from '@/components/Process'
 import CtaSection from '@/components/CtaSection'
 import Footer from '@/components/Footer'
@@ -29,7 +29,7 @@ export default function Page() {
       <QuoteStrip />
       <Services />
       <ProofNumbers />
-      <Verticals />
+      <CaseStudies />
       <Process />
       <CtaSection onBookCall={openChat} />
       <Footer />
