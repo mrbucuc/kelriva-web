@@ -25,6 +25,8 @@ export default function VideoSection() {
       <video
         ref={videoRef}
         src="/kelriva-launch.mp4"
+        poster="/og-image.png"
+        preload="none"
         autoPlay
         muted
         loop
