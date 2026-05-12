@@ -136,25 +136,32 @@ export default function ChatWidget({ isOpen, onToggle }: ChatWidgetProps) {
     const form = e.currentTarget
     const data = new FormData(form)
     const lead = {
-      name:     data.get('name'),
-      company:  data.get('company'),
-      email:    data.get('email'),
-      phone:    data.get('phone'),
-      vertical: data.get('vertical'),
-      service:  data.get('service'),
-      note:     data.get('note'),
+      name:     data.get('name')     as string,
+      company:  data.get('company')  as string,
+      email:    data.get('email')    as string,
+      phone:    data.get('phone')    as string,
+      vertical: data.get('vertical') as string,
+      service:  data.get('service')  as string,
+      note:     data.get('note')     as string,
       ts:       new Date().toISOString(),
       src:      'kelriva.ai chatbot',
     }
-    console.log('KELRIVA LEAD:', lead)
-    const leads = JSON.parse(localStorage.getItem('k_leads') || '[]')
-    leads.push(lead)
-    localStorage.setItem('k_leads', JSON.stringify(leads))
 
     setShowForm(false)
     setStage('done')
     await addBotMsg(`Thank you, ${lead.name}! ✓`)
     await addBotMsg(`We'll be in touch at <strong>${lead.email}</strong> within 24 hours.`, 200)
+
+    // Send email notification
+    try {
+      await fetch('/api/contact', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(lead),
+      })
+    } catch {
+      // Silent fail — lead still confirmed to user
+    }
   }, [addBotMsg])
 
   // Auto-start when opened
