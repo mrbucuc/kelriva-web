@@ -124,12 +124,12 @@ export default function RootLayout({
                                                                                                                 gtag('js', new Date());
                                                                                                                                     gtag('config', 'G-NQ7ENKQ1DK');
                                                                                                                                                         `}
-                                                </Script>Script>
+                                                </Script
                                                 <script
                                                                         type="application/ld+json"
                                                                         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                                                                     />
-                                </head>head>
+                                </head>
                                 <body>
                                                 <noscript>
                                                                     <iframe
