@@ -52,7 +52,7 @@ export default function Footer() {
               KELRIVA AI LIMITED · Company No. 17179115<br />
               71-75 Shelton Street, Covent Garden<br />
               London WC2H 9JQ · England &amp; Wales<br />
-              info@kelriva.ai
+              020 3866 1197 · info@kelriva.ai
             </div>
 
             {/* LinkedIn icon */}
@@ -104,6 +104,7 @@ export default function Footer() {
 
           {/* Company */}
           <FootCol title="Company" links={[
+            { label: '020 3866 1197',   href: 'tel:02038661197' },
             { label: 'info@kelriva.ai', href: 'mailto:info@kelriva.ai' },
             { label: 'kelriva.ai',      href: 'https://kelriva.ai' },
             { label: 'How we work',     href: '#process' },
