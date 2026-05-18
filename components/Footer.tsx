@@ -22,7 +22,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.2rem' }}>
-              <Image src="/mark-kelriva.png" alt="Kelriva AI" width={42} height={46} style={{ display: 'block' }} />
+              <Image src="/mark-kelriva.png" alt="Kelriva AI logo" width={42} height={46} style={{ display: 'block' }} />
               <div style={{ lineHeight: 1 }}>
                 <div style={{
                   fontFamily: 'var(--font-instrument), sans-serif',
