@@ -19,6 +19,7 @@ export type Article = {
   excerpt:  string    // 1–2 sentences shown on listing card
   body:     Block[]
   tags:     string[]
+  status:   'published' | 'coming-soon'
 }
 
 export const categoryLabel: Record<Category, string> = {
@@ -37,6 +38,7 @@ export const articles: Article[] = [
     date:     '2026-05-18',
     readTime: 5,
     excerpt:  'Real transaction data from 50,000+ businesses shows Anthropic\'s Claude overtaking OpenAI in enterprise adoption. The lesson isn\'t which model to choose — it\'s how to build so you\'re never forced to choose again.',
+    status:   'published',
     tags:     ['Enterprise AI', 'AI Strategy', 'London Tech', 'LLM'],
     body: [
       {
@@ -108,6 +110,39 @@ export const articles: Article[] = [
         v: 'That answer tells you more about your AI strategy than any benchmark.',
       },
     ],
+  },
+  {
+    slug:     'amazon-ai-usage-wrong-metric',
+    title:    'Amazon Proved That Measuring AI Usage Is the Wrong Metric. Here\'s What to Track Instead.',
+    category: 'news-analysis',
+    date:     '2026-05-26',
+    readTime: 5,
+    status:   'coming-soon',
+    excerpt:  'Amazon\'s internal AI data revealed a counterintuitive truth: the businesses winning with AI aren\'t measuring how much AI they use — they\'re measuring what changes because of it. Here\'s the framework that actually matters.',
+    tags:     ['Enterprise AI', 'AI Strategy', 'Productivity', 'ROI'],
+    body:     [],
+  },
+  {
+    slug:     'four-layer-ai-stack-audit',
+    title:    'The 4-Layer AI Stack: How We Audit a Client\'s AI Readiness in 60 Minutes',
+    category: 'education',
+    date:     '2026-06-02',
+    readTime: 6,
+    status:   'coming-soon',
+    excerpt:  'Before we write a single line of code, we run every client through the same 60-minute audit. Four layers, four questions, and a clear picture of where AI will actually create value — and where it will just create cost.',
+    tags:     ['AI Strategy', 'Enterprise AI', 'AI Readiness', 'Consultancy'],
+    body:     [],
+  },
+  {
+    slug:     'professional-services-document-review-70-percent',
+    title:    'A London Professional Services Firm Cut Document Review Time by 70%. This Is What We Built.',
+    category: 'case-study',
+    date:     '2026-06-09',
+    readTime: 7,
+    status:   'coming-soon',
+    excerpt:  'A 40-person professional services firm in the City was spending 3 days a week on document review. We rebuilt that process with AI. It now takes half a day. Here\'s exactly what we built, how it works, and what it cost.',
+    tags:     ['Case Study', 'IDP', 'Document Automation', 'London'],
+    body:     [],
   },
 ]
 

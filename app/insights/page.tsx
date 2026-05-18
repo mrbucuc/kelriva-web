@@ -92,116 +92,130 @@ export default function InsightsPage() {
             </div>
           ) : (
             <div className="insights-grid">
-              {articles.map(article => (
-                <a
-                  key={article.slug}
-                  href={`/insights/${article.slug}`}
-                  className="insight-card"
-                  style={{
-                    display: 'block',
-                    padding: '2rem',
-                    border: '1px solid rgba(214,53,69,.08)',
-                    background: 'rgba(255,255,255,.012)',
-                    transition: 'border-color .25s, transform .25s, background .25s',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {/* Top accent line — hidden until hover */}
-                  <div className="card-accent" style={{
-                    position: 'absolute', top: 0, left: 0, right: 0,
-                    height: '1px',
-                    background: 'linear-gradient(90deg,#d63545,transparent)',
-                    opacity: 0,
-                    transition: 'opacity .3s',
-                  }} />
+              {articles.map(article => {
+                const soon = article.status === 'coming-soon'
+                const Card = soon ? 'div' : 'a'
+                const cardProps = soon
+                  ? {}
+                  : { href: `/insights/${article.slug}` }
 
-                  {/* Category + date */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '1.4rem',
-                    flexWrap: 'wrap',
-                    gap: '.5rem',
-                  }}>
-                    <span style={{
-                      fontFamily: 'var(--font-jetbrains), monospace',
-                      fontSize: '.56rem',
-                      letterSpacing: '.2em',
-                      textTransform: 'uppercase',
-                      color: '#d63545',
-                      background: 'rgba(214,53,69,.1)',
-                      padding: '.28rem .7rem',
-                      border: '1px solid rgba(214,53,69,.2)',
+                return (
+                  <Card
+                    key={article.slug}
+                    {...(cardProps as object)}
+                    className={soon ? 'insight-card-soon' : 'insight-card'}
+                    style={{
+                      display: 'block',
+                      padding: '2rem',
+                      border: `1px solid ${soon ? 'rgba(214,53,69,.04)' : 'rgba(214,53,69,.08)'}`,
+                      background: soon ? 'rgba(255,255,255,.006)' : 'rgba(255,255,255,.012)',
+                      transition: 'border-color .25s, transform .25s, background .25s',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      opacity: soon ? .55 : 1,
+                      cursor: soon ? 'default' : 'pointer',
+                    }}
+                  >
+                    {/* Top accent line — published cards only */}
+                    {!soon && (
+                      <div className="card-accent" style={{
+                        position: 'absolute', top: 0, left: 0, right: 0,
+                        height: '1px',
+                        background: 'linear-gradient(90deg,#d63545,transparent)',
+                        opacity: 0,
+                        transition: 'opacity .3s',
+                      }} />
+                    )}
+
+                    {/* Category + date */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '1.4rem',
+                      flexWrap: 'wrap',
+                      gap: '.5rem',
                     }}>
-                      {categoryLabel[article.category]}
-                    </span>
-                    <span style={{
-                      fontFamily: 'var(--font-jetbrains), monospace',
-                      fontSize: '.58rem',
-                      color: '#6b5548',
-                      letterSpacing: '.06em',
-                    }}>
-                      {formatDate(article.date)}
-                    </span>
-                  </div>
+                      <span style={{
+                        fontFamily: 'var(--font-jetbrains), monospace',
+                        fontSize: '.56rem',
+                        letterSpacing: '.2em',
+                        textTransform: 'uppercase',
+                        color: soon ? '#6b5548' : '#d63545',
+                        background: soon ? 'rgba(107,85,72,.08)' : 'rgba(214,53,69,.1)',
+                        padding: '.28rem .7rem',
+                        border: `1px solid ${soon ? 'rgba(107,85,72,.15)' : 'rgba(214,53,69,.2)'}`,
+                      }}>
+                        {categoryLabel[article.category]}
+                      </span>
+                      <span style={{
+                        fontFamily: 'var(--font-jetbrains), monospace',
+                        fontSize: '.58rem',
+                        color: '#6b5548',
+                        letterSpacing: '.06em',
+                      }}>
+                        {soon ? `${formatDate(article.date)}` : formatDate(article.date)}
+                      </span>
+                    </div>
 
-                  {/* Title */}
-                  <h2 style={{
-                    fontFamily: 'var(--font-cormorant), serif',
-                    fontWeight: 600,
-                    fontStyle: 'italic',
-                    fontSize: 'clamp(1.4rem, 2.2vw, 1.75rem)',
-                    color: '#ffffff',
-                    lineHeight: 1.15,
-                    letterSpacing: '-.01em',
-                    marginBottom: '1rem',
-                  }}>
-                    {article.title}
-                  </h2>
-
-                  {/* Excerpt */}
-                  <p style={{
-                    fontSize: '.88rem',
-                    color: '#6b5548',
-                    lineHeight: 1.75,
-                    marginBottom: '1.75rem',
-                  }}>
-                    {article.excerpt}
-                  </p>
-
-                  {/* Footer row */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}>
-                    <span style={{
-                      fontFamily: 'var(--font-jetbrains), monospace',
-                      fontSize: '.56rem',
-                      color: '#6b5548',
-                      letterSpacing: '.1em',
-                      textTransform: 'uppercase',
-                    }}>
-                      {article.readTime} min read
-                    </span>
-
-                    <span className="card-arrow" style={{
-                      fontFamily: 'var(--font-instrument), sans-serif',
-                      fontSize: '.8rem',
-                      color: '#d63545',
-                      letterSpacing: '.1em',
-                      textTransform: 'uppercase',
+                    {/* Title */}
+                    <h2 style={{
+                      fontFamily: 'var(--font-cormorant), serif',
                       fontWeight: 600,
-                      transition: 'transform .2s',
-                      display: 'inline-block',
+                      fontStyle: 'italic',
+                      fontSize: 'clamp(1.4rem, 2.2vw, 1.75rem)',
+                      color: soon ? 'rgba(255,255,255,.5)' : '#ffffff',
+                      lineHeight: 1.15,
+                      letterSpacing: '-.01em',
+                      marginBottom: '1rem',
                     }}>
-                      Read →
-                    </span>
-                  </div>
-                </a>
-              ))}
+                      {article.title}
+                    </h2>
+
+                    {/* Excerpt */}
+                    <p style={{
+                      fontSize: '.88rem',
+                      color: '#6b5548',
+                      lineHeight: 1.75,
+                      marginBottom: '1.75rem',
+                    }}>
+                      {article.excerpt}
+                    </p>
+
+                    {/* Footer row */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}>
+                      <span style={{
+                        fontFamily: 'var(--font-jetbrains), monospace',
+                        fontSize: '.56rem',
+                        color: '#6b5548',
+                        letterSpacing: '.1em',
+                        textTransform: 'uppercase',
+                      }}>
+                        {soon ? 'Coming soon' : `${article.readTime} min read`}
+                      </span>
+
+                      {!soon && (
+                        <span className="card-arrow" style={{
+                          fontFamily: 'var(--font-instrument), sans-serif',
+                          fontSize: '.8rem',
+                          color: '#d63545',
+                          letterSpacing: '.1em',
+                          textTransform: 'uppercase',
+                          fontWeight: 600,
+                          transition: 'transform .2s',
+                          display: 'inline-block',
+                        }}>
+                          Read →
+                        </span>
+                      )}
+                    </div>
+                  </Card>
+                )
+              })}
             </div>
           )}
         </section>
