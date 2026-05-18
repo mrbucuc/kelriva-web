@@ -50,10 +50,10 @@ export default function Nav({ onBookCall }: NavProps) {
       {/* Links */}
       <ul style={{ display: 'flex', gap: '2.5rem', listStyle: 'none' }} className="nav-links-desktop">
         {[
-          { label: 'Services',  href: '#services'  },
+          { label: 'Services',     href: '#services'    },
           { label: 'Case Studies', href: '#case-studies' },
-          { label: 'Process',   href: '#process'   },
-          { label: 'Contact',   href: '#contact'   },
+          { label: 'Process',      href: '#process'      },
+          { label: 'Contact',      href: '#contact'      },
         ].map(({ label, href }) => (
           <li key={label}>
             <a
@@ -75,6 +75,26 @@ export default function Nav({ onBookCall }: NavProps) {
             </a>
           </li>
         ))}
+        <li>
+          <a
+            href="/insights"
+            className="nav-link"
+            style={{
+              fontFamily: 'var(--font-instrument), sans-serif',
+              fontSize: '.76rem',
+              fontWeight: 500,
+              letterSpacing: '.1em',
+              textTransform: 'uppercase',
+              color: '#d63545',
+              transition: 'color .2s',
+              opacity: .85,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#d63545'; e.currentTarget.style.opacity = '1' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#d63545'; e.currentTarget.style.opacity = '.85' }}
+          >
+            Insights
+          </a>
+        </li>
       </ul>
 
       {/* CTA */}
