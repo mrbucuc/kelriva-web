@@ -33,8 +33,8 @@ const jetbrains = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Kelriva AI — Enterprise AI Consultancy London | Fixed-Fee, Weeks Not Months',
-  description: 'London-based enterprise AI consultancy. Bespoke AI systems: Intelligent Document Processing, AI Workflow Automation & Data Analytics. Fixed-fee. Delivered in weeks.',
+  title: 'Kelriva AI — Enterprise AI Consultancy | London',
+  description: 'London-based enterprise AI consultancy. AI systems for IDP, Workflow Automation & Data Analytics. Fixed-fee, delivered in weeks.',
   keywords: [
     'AI consultancy',
     'intelligent document processing',
