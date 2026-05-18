@@ -6,7 +6,6 @@ import Image from 'next/image'
 interface HeroProps {
   onBookCall: () => void
 }
-
 export default function Hero({ onBookCall }: HeroProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -215,8 +214,8 @@ export default function Hero({ onBookCall }: HeroProps) {
           opacity: 0,
           animation: 'fadeUp 1.1s ease .5s forwards',
         }}>
-          <em style={{ fontStyle: 'normal', fontWeight: 600 }}>From data</em><br />
-          <em style={{ fontStyle: 'normal', fontWeight: 600 }}>to decision.</em>
+          <span>From data</span><br />
+          <span>to decision.</span>
         </h1>
         <span style={{
           display: 'block',
