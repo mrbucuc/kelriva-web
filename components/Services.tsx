@@ -90,7 +90,7 @@ export default function Services() {
               color: '#ffffff', lineHeight: 1.1, letterSpacing: '-.02em',
             }}>
               Business Process<br />
-              <strong style={{ fontStyle: 'normal', fontWeight: 700, fontFamily: 'var(--font-instrument), sans-serif' }}>Automation</strong><br />
+              <strong className="font-sans font-bold not-italic">Automation</strong><br />
               <em>powered by AI</em>
             </h2>
           </motion.div>
