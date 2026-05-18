@@ -106,9 +106,9 @@ export default function Footer() {
           <FootCol title="Company" links={[
             { label: '020 3866 1197',   href: 'tel:02038661197' },
             { label: 'info@kelriva.ai', href: 'mailto:info@kelriva.ai' },
-            { label: 'kelriva.ai',      href: 'https://kelriva.ai' },
+            { label: 'Visit kelriva.ai', href: 'https://kelriva.ai' },
             { label: 'How we work',     href: '#process' },
-            { label: 'LinkedIn',        href: 'https://www.linkedin.com/company/kelriva-ai' },
+            { label: 'Kelriva on LinkedIn', href: 'https://www.linkedin.com/company/kelriva-ai' },
           ]} />
         </div>
 
