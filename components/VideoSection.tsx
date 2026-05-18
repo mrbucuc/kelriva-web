@@ -62,7 +62,7 @@ export default function VideoSection() {
 
         {/* Logo pulse */}
         <div style={{ animation: 'logoPulse 2s ease infinite', marginBottom: 28 }}>
-          <Image src="/mark-kelriva.png" alt="Kelriva AI" width={68} height={74} />
+          <Image src="/mark-kelriva.png" alt="" width={68} height={74} />
         </div>
 
         {/* Eyebrow */}
