@@ -22,94 +22,157 @@ export default function Hero({ onBookCall }: HeroProps) {
     resize()
     window.addEventListener('resize', resize)
 
-    // Particles
-    const ns = Array.from({ length: 75 }, () => ({
-      x: Math.random() * 1400,
-      y: Math.random() * H,
-      vx: (Math.random() - .5) * .3,
-      vy: (Math.random() - .5) * .3,
-      r:  Math.random() * 2 + .5,
-      o:  Math.random() * .5 + .08,
-    }))
+    // ── Node types ───────────────────────────────────────────────────────────
+    // Regular nodes: many small-medium glowing dots
+    // Hub nodes: fewer large bright anchor points (like the bright clusters in the image)
+    const LINK_DIST   = 200
+    const MOUSE_DIST  = 220
 
-    let mX = W / 2, mY = H / 2
+    type Node = {
+      x: number; y: number
+      vx: number; vy: number
+      r: number          // base radius
+      o: number          // base opacity
+      hub: boolean       // large bright node?
+      phase: number      // for pulse animation
+      speed: number      // pulse speed
+    }
+
+    const makeNode = (hub: boolean): Node => ({
+      x:     Math.random() * W,
+      y:     Math.random() * H,
+      vx:    (Math.random() - .5) * (hub ? .15 : .28),
+      vy:    (Math.random() - .5) * (hub ? .15 : .28),
+      r:     hub ? Math.random() * 3 + 3   : Math.random() * 1.8 + .6,
+      o:     hub ? Math.random() * .35 + .55 : Math.random() * .45 + .12,
+      hub,
+      phase: Math.random() * Math.PI * 2,
+      speed: Math.random() * .8 + .4,
+    })
+
+    const nodes: Node[] = [
+      ...Array.from({ length: 110 }, () => makeNode(false)),
+      ...Array.from({ length: 14  }, () => makeNode(true)),
+    ]
+
+    let mX = -999, mY = -999
     const onMouse = (e: MouseEvent) => {
       const r = cv.getBoundingClientRect()
       mX = e.clientX - r.left
       mY = e.clientY - r.top
     }
+    const onMouseLeave = () => { mX = -999; mY = -999 }
     cv.addEventListener('mousemove', onMouse)
+    cv.addEventListener('mouseleave', onMouseLeave)
+
+    // ── Draw helpers ─────────────────────────────────────────────────────────
+    const drawGlowDot = (x: number, y: number, r: number, alpha: number, hub: boolean) => {
+      // Outer soft halo
+      const haloR = hub ? r * 5.5 : r * 4
+      const haloAlpha = hub ? alpha * .18 : alpha * .08
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, haloR)
+      grad.addColorStop(0,   `rgba(214,53,69,${haloAlpha * 2.5})`)
+      grad.addColorStop(.4,  `rgba(214,53,69,${haloAlpha})`)
+      grad.addColorStop(1,   'rgba(214,53,69,0)')
+      ctx.beginPath()
+      ctx.arc(x, y, haloR, 0, Math.PI * 2)
+      ctx.fillStyle = grad
+      ctx.fill()
+
+      // Inner bright core
+      ctx.save()
+      ctx.shadowColor  = hub ? '#ff2233' : '#d63545'
+      ctx.shadowBlur   = hub ? 18 : 10
+      ctx.beginPath()
+      ctx.arc(x, y, r, 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(${hub ? '255,60,70' : '214,53,69'},${alpha})`
+      ctx.fill()
+      // Second pass — extra bloom on hubs
+      if (hub) {
+        ctx.shadowBlur = 35
+        ctx.shadowColor = 'rgba(214,53,69,.6)'
+        ctx.beginPath()
+        ctx.arc(x, y, r * .6, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255,100,110,${alpha * .9})`
+        ctx.fill()
+      }
+      ctx.restore()
+    }
 
     let raf: number
     const draw = () => {
       ctx.clearRect(0, 0, W, H)
-      ns.forEach(n => {
+      const t = Date.now() * .001
+
+      // ── Move nodes ──────────────────────────────────────────────────────
+      nodes.forEach(n => {
         n.x += n.vx; n.y += n.vy
-        if (n.x < 0 || n.x > W) n.vx *= -1
-        if (n.y < 0 || n.y > H) n.vy *= -1
+        if (n.x < 0) { n.x = 0; n.vx *= -1 }
+        if (n.x > W) { n.x = W; n.vx *= -1 }
+        if (n.y < 0) { n.y = 0; n.vy *= -1 }
+        if (n.y > H) { n.y = H; n.vy *= -1 }
       })
-      // Connections
-      for (let i = 0; i < ns.length; i++) {
-        for (let j = i + 1; j < ns.length; j++) {
-          const a = ns[i], b = ns[j]
+
+      // ── Connections between nodes ────────────────────────────────────────
+      ctx.save()
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j]
           const dx = a.x - b.x, dy = a.y - b.y
-          const d = Math.sqrt(dx * dx + dy * dy)
-          if (d < 155) {
-            const al = (1 - d / 155) * .15
+          const d  = Math.sqrt(dx * dx + dy * dy)
+          if (d < LINK_DIST) {
+            const fade = 1 - d / LINK_DIST
+            const isHubLink = a.hub || b.hub
+            const al = fade * (isHubLink ? .38 : .18)
             ctx.beginPath()
             ctx.strokeStyle = `rgba(214,53,69,${al})`
-            ctx.lineWidth = .6
+            ctx.lineWidth   = fade * (isHubLink ? 1.2 : .7)
             ctx.moveTo(a.x, a.y)
             ctx.lineTo(b.x, b.y)
             ctx.stroke()
           }
         }
       }
-      // Mouse connections
-      ns.forEach(n => {
-        const dx = n.x - mX, dy = n.y - mY
-        const d = Math.sqrt(dx * dx + dy * dy)
-        if (d < 190) {
-          const al = (1 - d / 190) * .38
-          ctx.beginPath()
-          ctx.strokeStyle = `rgba(214,53,69,${al})`
-          ctx.lineWidth = .8
-          ctx.moveTo(n.x, n.y)
-          ctx.lineTo(mX, mY)
-          ctx.stroke()
-        }
-      })
-      // Dots
-      ns.forEach(n => {
-        ctx.beginPath()
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(214,53,69,${n.o})`
-        ctx.fill()
-      })
-      // Floating nodes
-      const t = Date.now() * .001
-      for (let i = 0; i < 5; i++) {
-        const px = (Math.sin(t * .4 + i * 1.2) * .5 + .5) * W
-        const py = (Math.cos(t * .3 + i * .9)  * .5 + .5) * H
-        const pr = 3 + Math.sin(t + i)
-        ctx.beginPath()
-        ctx.arc(px, py, pr, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(214,53,69,.45)'
-        ctx.fill()
-        ctx.beginPath()
-        ctx.arc(px, py, pr + 4 + Math.sin(t * 3) * 2, 0, Math.PI * 2)
-        ctx.strokeStyle = 'rgba(214,53,69,.18)'
-        ctx.lineWidth = 1
-        ctx.stroke()
+      ctx.restore()
+
+      // ── Mouse connections ────────────────────────────────────────────────
+      if (mX > 0) {
+        ctx.save()
+        nodes.forEach(n => {
+          const dx = n.x - mX, dy = n.y - mY
+          const d = Math.sqrt(dx * dx + dy * dy)
+          if (d < MOUSE_DIST) {
+            const al = (1 - d / MOUSE_DIST) * .55
+            ctx.beginPath()
+            ctx.strokeStyle = `rgba(214,53,69,${al})`
+            ctx.lineWidth = (1 - d / MOUSE_DIST) * 1.2
+            ctx.moveTo(n.x, n.y)
+            ctx.lineTo(mX, mY)
+            ctx.stroke()
+          }
+        })
+        ctx.restore()
+        // Cursor node
+        drawGlowDot(mX, mY, 3, .7, true)
       }
+
+      // ── Draw nodes (regular first, hubs on top) ──────────────────────────
+      nodes.filter(n => !n.hub).forEach(n => {
+        const pulse = Math.sin(t * n.speed + n.phase) * .2 + .8
+        drawGlowDot(n.x, n.y, n.r * pulse, n.o * pulse, false)
+      })
+      nodes.filter(n => n.hub).forEach(n => {
+        const pulse = Math.sin(t * n.speed + n.phase) * .25 + .85
+        drawGlowDot(n.x, n.y, n.r * pulse, n.o, true)
+      })
+
       raf = requestAnimationFrame(draw)
     }
     raf = requestAnimationFrame(draw)
 
     // Parallax on scroll
     const onScroll = () => {
-      const y = window.scrollY
-      cv.style.transform = `translateY(${y * .4}px)`
+      cv.style.transform = `translateY(${window.scrollY * .35}px)`
     }
     window.addEventListener('scroll', onScroll, { passive: true })
 
@@ -117,6 +180,7 @@ export default function Hero({ onBookCall }: HeroProps) {
       window.removeEventListener('resize', resize)
       window.removeEventListener('scroll', onScroll)
       cv.removeEventListener('mousemove', onMouse)
+      cv.removeEventListener('mouseleave', onMouseLeave)
       cancelAnimationFrame(raf)
     }
   }, [])
