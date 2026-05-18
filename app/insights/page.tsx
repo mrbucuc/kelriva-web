@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import InsightsNav from '@/components/InsightsNav'
+import SubscribeForm from '@/components/SubscribeForm'
 import { articles, categoryLabel, formatDate } from '@/lib/insights'
 
 export const metadata: Metadata = {
@@ -244,23 +245,7 @@ export default function InsightsPage() {
               One article per week. Enterprise AI strategy and implementation insights for London
               decision-makers. No noise.
             </p>
-            <a
-              href="mailto:info@kelriva.ai?subject=Subscribe to Kelriva AI Insights"
-              style={{
-                display: 'inline-block',
-                background: '#d63545',
-                color: '#0d0a08',
-                fontFamily: 'var(--font-instrument), sans-serif',
-                fontWeight: 700,
-                fontSize: '.78rem',
-                letterSpacing: '.12em',
-                textTransform: 'uppercase',
-                padding: '.9rem 2.2rem',
-                transition: 'opacity .2s',
-              }}
-            >
-              Subscribe via email →
-            </a>
+            <SubscribeForm />
           </div>
         </section>
 
