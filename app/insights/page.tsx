@@ -22,7 +22,7 @@ export default function InsightsPage() {
     <>
       <InsightsNav />
 
-      <main style={{ background: '#0d0a08', minHeight: '100vh', paddingTop: '66px' }}>
+      <main style={{ background: 'transparent', minHeight: '100vh', paddingTop: '66px' }}>
 
         {/* ── Page header ──────────────────────────────────────────────── */}
         <header style={{

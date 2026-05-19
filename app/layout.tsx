@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Bricolage_Grotesque, Cormorant_Garamond, JetBrains_Mono, Instrument_Sans } from 'next/font/google'
 import Script from 'next/script'
+import ParticleBackground from '@/components/ParticleBackground'
 import './globals.css'
 
 const bricolage = Bricolage_Grotesque({
@@ -164,7 +165,12 @@ export default function RootLayout({
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
-        {children}
+        {/* Global particle canvas — sits behind all page content */}
+        <ParticleBackground />
+        {/* All page content sits above the canvas */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {children}
+        </div>
       </body>
     </html>
   )
