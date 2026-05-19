@@ -50,7 +50,7 @@ const fadeUp: Variants = {
 
 export default function CaseStudies() {
   return (
-    <section id="case-studies" style={{ background: '#0d0a08', padding: '7rem 3rem' }}>
+    <section id="case-studies" style={{ background: 'transparent', padding: '7rem 3rem' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Header */}
@@ -117,7 +117,9 @@ function CaseCard({
       viewport={{ once: true, margin: '-60px' }}
       transition={{ delay }}
       style={{
-        background: '#0d0a08',
+        background: 'rgba(13,10,8,0.80)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
         border: '1px solid rgba(255,255,255,.05)',
         borderTop: `2px solid ${color}`,
         padding: '3rem',
@@ -188,7 +190,7 @@ function CaseCard({
         }}
       >
         {metrics.map(m => (
-          <div key={m.label} style={{ padding: '1.2rem 1.4rem', background: '#0d0a08' }}>
+          <div key={m.label} style={{ padding: '1.2rem 1.4rem', background: 'rgba(13,10,8,0.88)' }}>
             <div style={{
               fontFamily: 'var(--font-jetbrains), monospace',
               fontSize: '.95rem', color,

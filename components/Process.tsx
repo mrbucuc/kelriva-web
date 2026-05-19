@@ -32,7 +32,7 @@ const containerVariants = {
 
 export default function Process() {
   return (
-    <section id="process" style={{ background: '#0d0a08', padding: '7rem 3rem' }}>
+    <section id="process" style={{ background: 'transparent', padding: '7rem 3rem' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -101,10 +101,12 @@ export default function Process() {
                   position: 'relative',
                   zIndex: 1,
                   textAlign: 'center',
-                  background: '#0d0a08',
+                  background: 'rgba(13,10,8,0.72)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
                   transition: 'background .25s',
                 }}
-                whileHover={{ backgroundColor: '#150f09' }}
+                whileHover={{ backgroundColor: 'rgba(21,15,9,0.88)' }}
               >
                 <div style={{
                   width: 38, height: 38,

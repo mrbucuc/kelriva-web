@@ -3,7 +3,9 @@ import Image from 'next/image'
 export default function Footer() {
   return (
     <footer style={{
-      background: '#0d0a08',
+      background: 'rgba(13,10,8,0.94)',
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
       borderTop: '1px solid rgba(214,53,69,.06)',
       padding: '5rem 3rem 2.5rem',
     }}>

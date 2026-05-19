@@ -16,7 +16,7 @@ export default function CtaSection({ onBookCall }: CtaSectionProps) {
       justifyContent: 'center',
       textAlign: 'center',
       overflow: 'hidden',
-      background: '#150f09',
+      background: 'rgba(21,15,9,0.08)',
     }}>
       {/* Expanding rings */}
       {[200, 400, 650, 900].map((size, i) => (

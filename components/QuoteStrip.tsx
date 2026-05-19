@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 export default function QuoteStrip() {
   return (
     <div style={{
-      background: '#150f09',
+      background: 'rgba(21,15,9,0.1)',
       padding: '5.5rem 3rem',
       borderTop: '1px solid rgba(214,53,69,.05)',
       borderBottom: '1px solid rgba(214,53,69,.05)',

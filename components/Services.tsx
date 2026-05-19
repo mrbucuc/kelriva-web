@@ -59,7 +59,7 @@ const cardVariants: Variants = {
 
 export default function Services() {
   return (
-    <section id="services" style={{ background: '#150f09', padding: '7rem 3rem' }}>
+    <section id="services" style={{ background: 'rgba(21,15,9,0.1)', padding: '7rem 3rem' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         {/* Header */}
         <div style={{
@@ -144,13 +144,15 @@ function ServiceCard({ idx, titleSans, titleItalic, badge, badgeColor, body, pil
     <motion.div
       variants={cardVariants}
       style={{
-        background: '#150f09',
+        background: 'rgba(13,10,8,0.72)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         padding: '2.5rem',
         position: 'relative',
         overflow: 'hidden',
         transition: 'background .3s',
       }}
-      whileHover={{ backgroundColor: '#1c1610' }}
+      whileHover={{ backgroundColor: 'rgba(28,22,16,0.88)' }}
     >
       {/* Bottom color line on hover via pseudo isn't possible inline — use motion overlay */}
       <div style={{

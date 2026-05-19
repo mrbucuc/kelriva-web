@@ -22,7 +22,7 @@ const numVariants: Variants = {
 export default function ProofNumbers() {
   return (
     <div style={{
-      background: '#0d0a08',
+      background: 'rgba(13,10,8,0.12)',
       padding: '6rem 3rem',
       textAlign: 'center',
       position: 'relative',
