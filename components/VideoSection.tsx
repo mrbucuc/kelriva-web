@@ -50,11 +50,23 @@ export default function VideoSection() {
 
     let mX = -999, mY = -999
     const onMouse = (e: MouseEvent) => {
-      const r = cv.getBoundingClientRect(); mX = e.clientX - r.left; mY = e.clientY - r.top
+      const r = cv.getBoundingClientRect()
+      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+        mX = e.clientX - r.left; mY = e.clientY - r.top
+      } else { mX = -999; mY = -999 }
     }
     const onLeave = () => { mX = -999; mY = -999 }
-    cv.addEventListener('mousemove', onMouse)
-    cv.addEventListener('mouseleave', onLeave)
+    const onTouch = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        const r = cv.getBoundingClientRect(), t = e.touches[0]
+        if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+          mX = t.clientX - r.left; mY = t.clientY - r.top
+        }
+      }
+    }
+    window.addEventListener('mousemove', onMouse)
+    window.addEventListener('touchmove', onTouch, { passive: true })
+    window.addEventListener('touchend',  onLeave)
 
     const LINK = 200, MD = 235
 
@@ -128,9 +140,10 @@ export default function VideoSection() {
     raf = requestAnimationFrame(draw)
 
     return () => {
-      window.removeEventListener('resize', resize)
-      cv.removeEventListener('mousemove', onMouse)
-      cv.removeEventListener('mouseleave', onLeave)
+      window.removeEventListener('resize',    resize)
+      window.removeEventListener('mousemove', onMouse)
+      window.removeEventListener('touchmove', onTouch)
+      window.removeEventListener('touchend',  onLeave)
       cancelAnimationFrame(raf)
     }
   }, [])

@@ -55,10 +55,16 @@ export default function ParticleBackground() {
     const onMouse      = (e: MouseEvent) => { mX = e.clientX; mY = e.clientY }
     const onMouseLeave = ()               => { mX = -999; mY = -999 }
     const onScroll     = ()               => { scrollY = window.scrollY }
+    const onTouch      = (e: TouchEvent) => {
+      if (e.touches.length > 0) { mX = e.touches[0].clientX; mY = e.touches[0].clientY }
+    }
+    const onTouchEnd   = () => { mX = -999; mY = -999 }
 
     window.addEventListener('mousemove',  onMouse)
     window.addEventListener('mouseleave', onMouseLeave)
     window.addEventListener('scroll',     onScroll, { passive: true })
+    window.addEventListener('touchmove',  onTouch,  { passive: true })
+    window.addEventListener('touchend',   onTouchEnd)
 
     // ── Draw helpers ─────────────────────────────────────────────────────────
     const drawGlowDot = (x: number, y: number, r: number, alpha: number, hub: boolean) => {
@@ -180,6 +186,8 @@ export default function ParticleBackground() {
       window.removeEventListener('mousemove',  onMouse)
       window.removeEventListener('mouseleave', onMouseLeave)
       window.removeEventListener('scroll',     onScroll)
+      window.removeEventListener('touchmove',  onTouch)
+      window.removeEventListener('touchend',   onTouchEnd)
       cancelAnimationFrame(raf)
     }
   }, [])
