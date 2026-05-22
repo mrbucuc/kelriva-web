@@ -85,7 +85,8 @@ Analyse this lead and respond in the JSON format specified.`,
   }
 
   try {
-    const raw = agentResponse.content[0].type === 'text' ? agentResponse.content[0].text : ''
+    const block = agentResponse.content[0]
+    const raw = block.type === 'text' ? (block as { type: 'text'; text: string }).text : ''
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
     analysis = JSON.parse(jsonMatch?.[0] || '{}')
   } catch {
