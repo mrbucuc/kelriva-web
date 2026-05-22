@@ -26,11 +26,17 @@ export async function POST(req: Request) {
 
   const emailDomain = email?.split('@')[1] || ''
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ ok: false, error: 'ANTHROPIC_API_KEY not set' }, { status: 500 })
+  }
+
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   // ── Claude agent prompt ────────────────────────────────────────────────────
-  const agentResponse = await anthropic.messages.create({
+  let agentResponse
+  try {
+    agentResponse = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 1500,
     system: `You are a senior business development analyst at Kelriva AI, a London-based AI consultancy.
@@ -74,6 +80,10 @@ Analyse this lead and respond in the JSON format specified.`,
       },
     ],
   })
+  } catch (e) {
+    console.error('Anthropic API error:', e)
+    return NextResponse.json({ ok: false, error: 'Anthropic API error', detail: String(e) }, { status: 500 })
+  }
 
   // ── Parse Claude response ──────────────────────────────────────────────────
   let analysis: {
@@ -89,8 +99,9 @@ Analyse this lead and respond in the JSON format specified.`,
     const raw = block.type === 'text' ? (block as { type: 'text'; text: string }).text : ''
     const jsonMatch = raw.match(/\{[\s\S]*\}/)
     analysis = JSON.parse(jsonMatch?.[0] || '{}')
-  } catch {
-    return NextResponse.json({ ok: false, error: 'Agent response parse error' }, { status: 500 })
+  } catch (e) {
+    console.error('Agent parse error:', e)
+    return NextResponse.json({ ok: false, error: 'Agent response parse error', detail: String(e) }, { status: 500 })
   }
 
   const scoreColor = analysis.score === 'HIGH' ? '#00e09c' : analysis.score === 'MEDIUM' ? '#f5b642' : '#6b5548'
