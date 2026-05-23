@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const { name, company, email, phone, vertical, service, note, ts } = body
 
   // Run Resend and Zapier independently — one failing must not block the other
-  const [emailResult, zapierResult] = await Promise.allSettled([
+  const [emailResult, zapierResult, researchResult] = await Promise.allSettled([
     // ── 1. Send email via Resend ───────────────────────────────────────────────
     process.env.RESEND_API_KEY
       ? resend.emails.send({
@@ -75,10 +75,31 @@ export async function POST(req: Request) {
           }),
         })
       : Promise.resolve(null),
+
+    // ── 3. Fire research agent webhook ────────────────────────────────────────
+    process.env.ZAPIER_RESEARCH_WEBHOOK_URL
+      ? fetch(process.env.ZAPIER_RESEARCH_WEBHOOK_URL, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            first_name:   name,
+            last_name:    '',
+            company_name: company,
+            email,
+            phone_number: phone    || '',
+            vertical:     vertical || '',
+            service:      service  || '',
+            message:      note     || '',
+            source:       'kelriva.ai chatbot',
+            submitted_at: ts,
+          }),
+        })
+      : Promise.resolve(null),
   ])
 
   if (emailResult.status === 'rejected') console.error('Resend error:', emailResult.reason)
   if (zapierResult.status === 'rejected') console.error('Zapier error:', zapierResult.reason)
+  if (researchResult.status === 'rejected') console.error('Research agent error:', researchResult.reason)
 
   const anyOk = emailResult.status === 'fulfilled' || zapierResult.status === 'fulfilled'
   return NextResponse.json({ ok: anyOk })
