@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Bricolage_Grotesque, Cormorant_Garamond, JetBrains_Mono, Instrument_Sans } from 'next/font/google'
 import Script from 'next/script'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import ParticleBackground from '@/components/ParticleBackground'
 import './globals.css'
 
@@ -171,6 +172,7 @@ export default function RootLayout({
         <div style={{ position: 'relative', zIndex: 1 }}>
           {children}
         </div>
+        <SpeedInsights />
       </body>
     </html>
   )
