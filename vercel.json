@@ -2,9 +2,6 @@
     "framework": "nextjs",
     "buildCommand": "next build",
     "outputDirectory": ".next",
-    "functions": {
-        "app/api/agents/**": { "maxDuration": 60 }
-    },
     "headers": [
           {
                   "source": "/(.*)",

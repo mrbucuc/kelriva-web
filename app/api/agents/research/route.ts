@@ -2,6 +2,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { Resend } from 'resend'
 import { NextResponse } from 'next/server'
 
+export const maxDuration = 60
+
 const AGENT_SECRET = process.env.AGENT_SECRET
 
 export async function POST(req: Request) {
