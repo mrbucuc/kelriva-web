@@ -21,11 +21,12 @@ export async function POST(req: Request) {
 
   const emailDomain = email?.split('@')[1] || ''
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const apiKey = (process.env.ANTHROPIC_API_KEY || '').replace(/\s/g, '')
+  if (!apiKey) {
     return NextResponse.json({ ok: false, error: 'ANTHROPIC_API_KEY not set' }, { status: 500 })
   }
 
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  const anthropic = new Anthropic({ apiKey })
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   // ── Claude agent prompt ────────────────────────────────────────────────────
