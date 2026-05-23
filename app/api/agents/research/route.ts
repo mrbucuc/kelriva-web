@@ -4,14 +4,7 @@ import { NextResponse } from 'next/server'
 
 export const maxDuration = 60
 
-const AGENT_SECRET = process.env.AGENT_SECRET
-
 export async function POST(req: Request) {
-  // Basic auth — Zapier passes this token in the header
-  const secret = req.headers.get('x-agent-secret')
-  if (AGENT_SECRET && secret !== AGENT_SECRET) {
-    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
-  }
 
   let body: Record<string, string>
   try {
