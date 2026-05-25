@@ -106,10 +106,11 @@ export default function Footer() {
 
           {/* Insights */}
           <FootCol title="Insights" links={[
-            { label: 'Model-Agnostic AI Infrastructure', href: '/insights/model-agnostic-infrastructure-2026' },
-            { label: 'Amazon AI: Wrong Metric',          href: '/insights/amazon-ai-usage-wrong-metric' },
-            { label: 'The 4-Layer AI Stack Audit',       href: '/insights/four-layer-ai-stack-audit' },
-            { label: 'All Insights',                     href: '/insights' },
+            { label: 'Model-Agnostic AI Infrastructure',  href: '/insights/model-agnostic-infrastructure-2026' },
+            { label: 'Amazon AI: Wrong Metric',           href: '/insights/amazon-ai-usage-wrong-metric' },
+            { label: 'The 4-Layer AI Stack Audit',        href: '/insights/four-layer-ai-stack-audit' },
+            { label: 'Cut Document Review by 70%',        href: '/insights/professional-services-document-review-70-percent' },
+            { label: 'All Insights',                      href: '/insights' },
           ]} />
 
           {/* Company */}

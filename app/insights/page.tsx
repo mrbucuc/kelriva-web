@@ -102,10 +102,8 @@ export default function InsightsPage() {
             <div className="insights-grid">
               {articles.map(article => {
                 const soon = article.status === 'coming-soon'
-                const Card = soon ? 'div' : 'a'
-                const cardProps = soon
-                  ? {}
-                  : { href: `/insights/${article.slug}` }
+                const Card = 'a'
+                const cardProps = { href: `/insights/${article.slug}` }
 
                 return (
                   <Card
