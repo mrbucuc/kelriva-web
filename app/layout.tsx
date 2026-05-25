@@ -121,12 +121,16 @@ const jsonLd = {
     'https://www.linkedin.com/company/kelriva',
   ],
   foundingDate: '2025',
-  serviceType: [
-    'Intelligent Document Processing',
-    'AI Workflow Automation',
-    'Data Analytics',
-    'Enterprise AI Consultancy',
-  ],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Enterprise AI Services',
+    itemListElement: [
+      { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Intelligent Document Processing' } },
+      { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'AI Workflow Automation' } },
+      { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Data Analytics' } },
+      { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Enterprise AI Consultancy' } },
+    ],
+  },
 }
 
 export default function RootLayout({

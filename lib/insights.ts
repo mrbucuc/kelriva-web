@@ -33,11 +33,11 @@ export const categoryLabel: Record<Category, string> = {
 export const articles: Article[] = [
   {
     slug:     'model-agnostic-infrastructure-2026',
-    title:    'Why Model-Agnostic AI Infrastructure Is the Most Important Decision You\'ll Make in 2026',
+    title:    'Model-Agnostic AI Infrastructure: The 2026 Enterprise Decision',
     category: 'news-analysis',
     date:     '2026-05-18',
     readTime: 5,
-    excerpt:  'Real transaction data from 50,000+ businesses shows Anthropic\'s Claude overtaking OpenAI in enterprise adoption. The lesson isn\'t which model to choose — it\'s how to build so you\'re never forced to choose again.',
+    excerpt:  'Real data from 50,000+ businesses shows why model-agnostic AI infrastructure is the most critical enterprise decision of 2026. Build to never be locked in again.',
     status:   'published',
     tags:     ['Enterprise AI', 'AI Strategy', 'London Tech', 'LLM'],
     body: [

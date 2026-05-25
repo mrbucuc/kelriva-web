@@ -29,6 +29,16 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   transpilePackages: ['remotion', '@remotion/player', '@remotion/core'],
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.kelriva.ai' }],
+        destination: 'https://kelriva.ai/:path*',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {

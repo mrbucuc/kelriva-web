@@ -15,7 +15,7 @@ export default function Footer() {
       }}>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '2.5fr 1fr 1fr 1fr',
+          gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
           gap: '3rem',
           paddingBottom: '3.5rem',
           borderBottom: '1px solid rgba(214,53,69,.06)',
@@ -102,6 +102,14 @@ export default function Footer() {
           <FootCol title="Case Studies" links={[
             { label: 'AI Coach Matching', href: '#case-studies' },
             { label: 'IDP Client Setup',  href: '#case-studies' },
+          ]} />
+
+          {/* Insights */}
+          <FootCol title="Insights" links={[
+            { label: 'Model-Agnostic AI Infrastructure', href: '/insights/model-agnostic-infrastructure-2026' },
+            { label: 'Amazon AI: Wrong Metric',          href: '/insights/amazon-ai-usage-wrong-metric' },
+            { label: 'The 4-Layer AI Stack Audit',       href: '/insights/four-layer-ai-stack-audit' },
+            { label: 'All Insights',                     href: '/insights' },
           ]} />
 
           {/* Company */}

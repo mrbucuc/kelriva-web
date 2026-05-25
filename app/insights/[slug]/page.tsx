@@ -19,7 +19,7 @@ export async function generateMetadata({
   if (!article) return { title: 'Not Found — Kelriva AI' }
 
   return {
-    title:       `${article.title} — Kelriva AI`,
+    title:       `${article.title} | Kelriva AI`,
     description: article.excerpt,
     keywords:    article.tags,
     alternates:  { canonical: `https://kelriva.ai/insights/${slug}` },
@@ -32,6 +32,14 @@ export async function generateMetadata({
       type:        'article',
       publishedTime: article.date,
       tags:        article.tags,
+      images: [
+        {
+          url: 'https://kelriva.ai/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: `${article.title} — Kelriva AI`,
+        },
+      ],
     },
   }
 }
