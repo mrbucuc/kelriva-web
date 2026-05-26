@@ -197,10 +197,100 @@ export const articles: Article[] = [
     category: 'education',
     date:     '2026-06-02',
     readTime: 6,
-    status:   'coming-soon',
+    status:   'published',
     excerpt:  'Before writing a line of code, we run every client through the same 60-minute audit. Four layers, four questions — a clear picture of where AI creates value vs. cost.',
     tags:     ['AI Strategy', 'Enterprise AI', 'AI Readiness', 'Consultancy'],
-    body:     [],
+    body: [
+      {
+        t: 'lead',
+        v: 'Every client engagement at Kelriva AI starts the same way. Before we discuss technology, before we talk about timelines, and before anyone opens a laptop, we run a 60-minute audit across four layers of the business. It is the most valuable hour we spend together.',
+      },
+      {
+        t: 'p',
+        v: 'Most AI projects that fail do so for reasons that were visible before the first line of code was written. Processes that were not documented. Data that was less clean than anyone assumed. Integration dependencies that nobody had mapped. Compliance requirements that only surfaced halfway through a build.',
+      },
+      {
+        t: 'p',
+        v: 'The audit exists to surface those issues early, when they are cheap to address. Here is how it works.',
+      },
+      { t: 'h2', v: 'Layer 1: Process' },
+      {
+        t: 'p',
+        v: 'We start by asking a deceptively simple question: where does time actually go in this business?',
+      },
+      {
+        t: 'p',
+        v: 'Not where people think time goes. Not what shows up in a job description. We want to know what a senior person in the team spends their first two hours on each morning, what tasks get pushed to Friday afternoons, and which processes have informal workarounds that nobody has ever written down.',
+      },
+      {
+        t: 'p',
+        v: 'AI creates the most value in processes that are high-volume, repetitive, and have clear inputs and outputs. Document review, data extraction, report generation, client onboarding checks. Processes that require judgment, creativity, or relationship management are usually poor candidates, at least as a starting point.',
+      },
+      {
+        t: 'p',
+        v: 'By the end of layer one, we have a ranked list of candidate processes. The top three or four are where we focus the rest of the audit.',
+      },
+      { t: 'h2', v: 'Layer 2: Data' },
+      {
+        t: 'p',
+        v: 'AI systems run on data. The quality of what you build is directly limited by the quality of what you feed it.',
+      },
+      {
+        t: 'p',
+        v: 'In layer two we look at what data exists for each candidate process, where it lives, and what state it is in. This is where most businesses get a surprise. Data that feels accessible often turns out to be spread across multiple systems, inconsistently formatted, partially missing, or locked inside PDFs that no one has ever needed to parse programmatically before.',
+      },
+      {
+        t: 'p',
+        v: 'We are not looking for perfect data. Perfect data does not exist. We are looking for data that is good enough to build on, with a clear path to improving it over time. If the data is genuinely too fragmented to work with, we say so clearly at this stage rather than discovering it six weeks into a build.',
+      },
+      {
+        t: 'p',
+        v: 'For most clients, two or three weeks of light data preparation before we begin building saves three times that in rework later.',
+      },
+      { t: 'h2', v: 'Layer 3: Integration' },
+      {
+        t: 'p',
+        v: 'An AI system does not exist in isolation. It needs to receive inputs from somewhere, and it needs to send outputs somewhere. Layer three maps every system the AI will touch.',
+      },
+      {
+        t: 'p',
+        v: 'We look at what APIs are available, what is only accessible via manual export, what requires a third-party connector, and what the IT or security team will need to approve before any integration goes live. In regulated industries, this layer also covers data residency. Where the data is stored and processed matters for GDPR compliance and sector-specific regulation, and those constraints shape the architecture of the whole system.',
+      },
+      {
+        t: 'p',
+        v: 'Integration complexity is the most common source of scope creep in AI projects. Identifying it upfront means we can price and plan for it accurately, not discover it mid-build.',
+      },
+      { t: 'h2', v: 'Layer 4: Risk and Governance' },
+      {
+        t: 'p',
+        v: 'The final layer is the one most technical teams skip entirely, and the one that causes the most problems in deployment.',
+      },
+      {
+        t: 'p',
+        v: 'We ask who in the business is accountable for decisions the AI will influence. What happens if the AI produces an error? Who reviews its outputs, and how often? What is the escalation path when something falls outside normal parameters? For financial services and legal clients especially, these questions have regulatory dimensions that need to be answered before any system goes near production.',
+      },
+      {
+        t: 'p',
+        v: 'We also look at internal appetite for change. An AI system that works perfectly but that the team does not trust will not get used. Understanding who the sceptics are, and what their concerns are, shapes how we design the handoff between the AI and the humans working alongside it.',
+      },
+      {
+        t: 'p',
+        v: 'Governance is not a blocker to building. It is a design input. The businesses that treat it that way ship faster and with fewer post-launch problems.',
+      },
+      { t: 'h2', v: 'What You Get at the End' },
+      {
+        t: 'p',
+        v: 'After 60 minutes across these four layers, we produce a short written summary. It covers which process we recommend tackling first and why, what the data preparation requirements are, which integrations are straightforward and which need more investigation, and any governance or compliance considerations to address before build begins.',
+      },
+      {
+        t: 'p',
+        v: 'It is not a lengthy report. It is a clear map of where to start, what the real constraints are, and what a realistic first phase looks like. Most clients tell us it is the most honest conversation they have had about AI in their business.',
+      },
+      {
+        t: 'p',
+        v: 'If you want to run through it for your business, that is exactly what a discovery call is for.',
+      },
+    ],
   },
   {
     slug:     'professional-services-document-review-70-percent',
