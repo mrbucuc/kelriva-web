@@ -103,6 +103,7 @@ const jsonLd = {
   logo: 'https://kelriva.ai/lockup-white.png',
   image: 'https://kelriva.ai/og-image.png',
   description: 'London-based enterprise AI consultancy building bespoke, production-ready AI systems: Intelligent Document Processing, AI Workflow Automation, and Data Analytics. Fixed-fee delivery in weeks.',
+  telephone: '+44-20-3866-1197',
   priceRange: '££££',
   address: {
     '@type': 'PostalAddress',
