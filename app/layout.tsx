@@ -37,6 +37,10 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: 'Kelriva AI — Enterprise AI Consultancy | London',
   description: 'London-based enterprise AI consultancy. AI systems for IDP, Workflow Automation & Data Analytics. Fixed-fee, delivered in weeks.',
+  icons: {
+    icon: '/mark-kelriva.png',
+    apple: '/mark-kelriva.png',
+  },
   keywords: [
     'AI consultancy',
     'intelligent document processing',
@@ -96,16 +100,16 @@ const jsonLd = {
   '@type': 'ProfessionalService',
   name: 'Kelriva AI',
   url: 'https://kelriva.ai/',
-  logo: 'https://kelriva.ai/logo.png',
+  logo: 'https://kelriva.ai/lockup-white.png',
   image: 'https://kelriva.ai/og-image.png',
   description: 'London-based enterprise AI consultancy building bespoke, production-ready AI systems: Intelligent Document Processing, AI Workflow Automation, and Data Analytics. Fixed-fee delivery in weeks.',
   priceRange: '££££',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Covent Garden',
+    streetAddress: '71-75 Shelton Street',
     addressLocality: 'London',
     addressRegion: 'England',
-    postalCode: 'WC2',
+    postalCode: 'WC2H 9JQ',
     addressCountry: 'GB',
   },
   geo: {
@@ -118,9 +122,9 @@ const jsonLd = {
     name: 'United Kingdom',
   },
   sameAs: [
-    'https://www.linkedin.com/company/kelriva',
+    'https://www.linkedin.com/company/kelriva-ai',
   ],
-  foundingDate: '2025',
+  foundingDate: '2026',
   hasOfferCatalog: {
     '@type': 'OfferCatalog',
     name: 'Enterprise AI Services',
@@ -140,7 +144,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="en-GB"
       className={`${bricolage.variable} ${cormorant.variable} ${jetbrains.variable} ${instrument.variable}`}
     >
       <head>

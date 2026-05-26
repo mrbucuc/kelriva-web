@@ -54,21 +54,37 @@ export default async function ArticlePage({
   const article   = getArticle(slug)
   if (!article) notFound()
 
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type':    'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home',     item: 'https://kelriva.ai/' },
+      { '@type': 'ListItem', position: 2, name: 'Insights', item: 'https://kelriva.ai/insights' },
+      { '@type': 'ListItem', position: 3, name: article.title, item: `https://kelriva.ai/insights/${slug}` },
+    ],
+  }
+
   const jsonLd = {
     '@context':     'https://schema.org',
     '@type':        'Article',
     headline:       article.title,
     description:    article.excerpt,
+    image:          'https://kelriva.ai/og-image.png',
     datePublished:  article.date,
+    dateModified:   article.date,
     author: {
       '@type': 'Organization',
       name:    'Kelriva AI',
       url:     'https://kelriva.ai',
     },
     publisher: {
-      '@type': 'Organization',
-      name:    'Kelriva AI',
-      url:     'https://kelriva.ai',
+      '@type':  'Organization',
+      name:     'Kelriva AI',
+      url:      'https://kelriva.ai',
+      logo: {
+        '@type': 'ImageObject',
+        url:     'https://kelriva.ai/lockup-white.png',
+      },
     },
     keywords: article.tags.join(', '),
     url:      `https://kelriva.ai/insights/${slug}`,
@@ -78,6 +94,10 @@ export default async function ArticlePage({
     <>
       <InsightsNav />
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
