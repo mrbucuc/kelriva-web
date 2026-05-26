@@ -117,10 +117,79 @@ export const articles: Article[] = [
     category: 'news-analysis',
     date:     '2026-05-26',
     readTime: 5,
-    status:   'coming-soon',
+    status:   'published',
     excerpt:  'Amazon\'s internal data revealed a counterintuitive truth: winning businesses don\'t measure AI usage — they measure what changes because of it. Here\'s the framework.',
     tags:     ['Enterprise AI', 'AI Strategy', 'Productivity', 'ROI'],
-    body:     [],
+    body: [
+      {
+        t: 'lead',
+        v: 'Amazon recently shared an uncomfortable finding from its internal AI rollout: teams that tracked AI usage — prompts sent, tools activated, hours spent with AI — showed almost no correlation with business outcomes. The teams that moved faster, made better decisions, and cut costs were measuring something else entirely.',
+      },
+      { t: 'h2', v: 'The Metric That Looks Right But Isn\'t' },
+      {
+        t: 'p',
+        v: 'When a business deploys AI, the natural instinct is to measure adoption. How many staff are using it? How often? Which departments have the highest engagement? These numbers feel like progress. They are easy to report to a board. They give the impression of transformation.',
+      },
+      {
+        t: 'p',
+        v: 'The problem is that usage is an input metric, not an outcome metric. A legal team can log hundreds of AI interactions a week and still be producing the same volume of work, at the same quality, for the same cost. The AI is being used. Nothing has changed.',
+      },
+      {
+        t: 'p',
+        v: 'Amazon\'s internal analysis found exactly this pattern. High usage rates in some teams were masking the fact that the AI had been bolted onto existing processes without changing those processes. Staff were using AI as a faster typewriter. The workflow underneath — the approvals, the handoffs, the review cycles — remained untouched.',
+      },
+      { t: 'h2', v: 'What the High-Performing Teams Were Measuring Instead' },
+      {
+        t: 'p',
+        v: 'The teams that demonstrated real ROI from AI were tracking outcomes, not activity. Specifically, they were asking three questions on a regular cadence.',
+      },
+      {
+        t: 'p',
+        v: 'First: what decisions are being made faster? Not "are we using AI to help with decisions" — but which specific decisions now take hours instead of days, and what is the downstream value of that speed? For a finance team, faster credit decisions have a direct revenue impact. For a legal team, faster contract review shortens deal cycles. The AI is only valuable if it changes the decision timeline.',
+      },
+      {
+        t: 'p',
+        v: 'Second: where has human review been meaningfully reduced? This is different from asking whether humans are still in the loop. The question is whether the AI has genuinely absorbed work that previously required senior attention. If a compliance officer still reads every document the AI has already processed, the AI has added a step, not removed one. The metric to track is reduction in review hours per output unit — not whether AI was involved.',
+      },
+      {
+        t: 'p',
+        v: 'Third: what errors or rework have decreased? AI-assisted processes frequently reduce certain classes of error — missed clauses in contracts, miscategorised transactions, inconsistent formatting in reports. Tracking error rates before and after AI implementation gives you a concrete quality metric that translates directly into cost avoided.',
+      },
+      { t: 'h2', v: 'Why This Distinction Matters for How You Build' },
+      {
+        t: 'p',
+        v: 'The difference between usage metrics and outcome metrics is not just a reporting preference. It determines how you architect your AI systems in the first place.',
+      },
+      {
+        t: 'p',
+        v: 'If you are optimising for usage, you deploy tools broadly and let teams find their own workflows. The AI sits alongside existing processes. Adoption is the goal. This is the approach most enterprise software vendors encourage — it maximises seat licences and looks good in quarterly reviews.',
+      },
+      {
+        t: 'p',
+        v: 'If you are optimising for outcomes, you start with the process you want to change and work backwards to the AI capability required to change it. You instrument the process before and after. You define what success looks like in hours saved, errors reduced, or decisions accelerated — before you write a line of code. The AI is embedded into the workflow, not added beside it.',
+      },
+      {
+        t: 'p',
+        v: 'This is a harder build. It requires understanding your business processes in detail, identifying where AI genuinely creates leverage, and being willing to redesign workflows rather than simply augment them. Most internal teams don\'t have the time or the mandate to do this work properly. Which is why the gap between high-performing and low-performing AI adopters keeps widening.',
+      },
+      { t: 'h2', v: 'A Simple Audit to Start With' },
+      {
+        t: 'p',
+        v: 'If you want to understand where your business stands, start with one process — not your entire AI strategy. Pick the workflow where you have already deployed AI, or where you are considering it. Then answer four questions.',
+      },
+      {
+        t: 'p',
+        v: 'What is the current cycle time for this process, from input to output? What does one unit of error in this process cost you — in time, rework, or risk? What decision or action at the end of this process creates the most business value? And if AI cut the cycle time by 60%, what would you do with the capacity freed?',
+      },
+      {
+        t: 'p',
+        v: 'Those four answers tell you whether there is a genuine ROI case for AI in that process — and what you would need to measure to prove it. If you can\'t answer the last question, the process probably isn\'t the right place to start.',
+      },
+      {
+        t: 'p',
+        v: 'The businesses that will extract durable value from AI are not the ones with the highest usage rates. They are the ones that knew what they were measuring before they started building.',
+      },
+    ],
   },
   {
     slug:     'four-layer-ai-stack-audit',
