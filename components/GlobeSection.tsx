@@ -1,30 +1,50 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
-import createGlobe from 'cobe'
+import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 
+// ── Geometry constants ────────────────────────────────────────────────────────
+const CX = 300          // SVG center x
+const CY = 300          // SVG center y
+const GR = 272          // globe radius
+
+// Convert (bearing from North clockwise, fraction of GR) → SVG x,y
+function polar(angleDeg: number, dist: number) {
+  const r = (angleDeg * Math.PI) / 180
+  return { x: CX + Math.sin(r) * dist * GR, y: CY - Math.cos(r) * dist * GR }
+}
+
+// ── Cities ─────────────────────────────────────────────────────────────────────
+// angle = great-circle bearing from London (degrees clockwise from North)
+// dist  = scaled radius fraction (0–1). Uses sqrt-ish scale so nearby cities aren't cramped.
+const CITIES = [
+  { id: 'paris',    name: 'Paris',          angle: 152, dist: 0.40, r: 3.2, labelSide: 'right' as const },
+  { id: 'fra',      name: 'Frankfurt',       angle: 118, dist: 0.46, r: 3.2, labelSide: 'right' as const },
+  { id: 'ams',      name: 'Amsterdam',       angle: 102, dist: 0.38, r: 3.0, labelSide: 'right' as const },
+  { id: 'rome',     name: 'Rome',            angle: 145, dist: 0.52, r: 3.0, labelSide: 'right' as const },
+  { id: 'ny',       name: 'New York',        angle: 287, dist: 0.70, r: 4.0, labelSide: 'left'  as const },
+  { id: 'toronto',  name: 'Toronto',         angle: 292, dist: 0.71, r: 3.0, labelSide: 'left'  as const },
+  { id: 'sf',       name: 'San Francisco',   angle: 323, dist: 0.80, r: 3.5, labelSide: 'left'  as const },
+  { id: 'dubai',    name: 'Dubai',           angle: 112, dist: 0.70, r: 3.5, labelSide: 'right' as const },
+  { id: 'sg',       name: 'Singapore',       angle: 91,  dist: 0.86, r: 3.5, labelSide: 'right' as const },
+  { id: 'tokyo',    name: 'Tokyo',           angle: 46,  dist: 0.83, r: 3.5, labelSide: 'right' as const },
+  { id: 'sydney',   name: 'Sydney',          angle: 133, dist: 0.96, r: 3.0, labelSide: 'right' as const },
+]
+
+// Concentric rings (% of GR) for the "latitude" grid
+const RINGS = [0.22, 0.40, 0.57, 0.73, 0.88]
+// Radial "longitude" lines at every 30°
+const RADIALS = Array.from({ length: 12 }, (_, i) => i * 30)
+
+// ── Component ──────────────────────────────────────────────────────────────────
 export default function GlobeSection() {
-  const sectionRef   = useRef<HTMLElement>(null)
-  const canvasRef    = useRef<HTMLCanvasElement>(null)
-  const overlayRef   = useRef<HTMLDivElement>(null)
+  const sectionRef  = useRef<HTMLElement>(null)
+  const svgRef      = useRef<SVGSVGElement>(null)
+  const overlayRef  = useRef<HTMLDivElement>(null)
+  const lastScrollY = useRef(0)
+  const rotDeg      = useRef(0)   // accumulated CSS rotation of the SVG (scroll-driven spin)
 
-  // Phi state — three independent contributors summed each frame
-  const phiAuto      = useRef(0.08)   // slow continuous auto-rotation
-  const phiScroll    = useRef(0)      // scroll-driven extra spin
-  const phiDrag      = useRef(0)      // user drag offset (accumulates)
-  const dragStartX   = useRef<number | null>(null)
-  const dragLive     = useRef(0)      // live drag delta (resets to 0 on release)
-
-  const rafRef       = useRef<number>(0)
-  const globeRef     = useRef<ReturnType<typeof createGlobe> | null>(null)
-  const lastScrollY  = useRef(0)
-
-  const setCursor = useCallback((grabbing: boolean) => {
-    if (canvasRef.current) canvasRef.current.style.cursor = grabbing ? 'grabbing' : 'grab'
-  }, [])
-
-  // ── Scroll handler ──────────────────────────────────────────────────────
+  // ── Scroll: spin + exit bind ────────────────────────────────────────────────
   useEffect(() => {
     const section = sectionRef.current
     if (!section) return
@@ -33,31 +53,21 @@ export default function GlobeSection() {
       const rect = section.getBoundingClientRect()
       const vh   = window.innerHeight
 
-      // ── 1. Scroll-reactive spin (while globe is visible) ───────────────
-      // How much the section has scrolled out upward: 0 (section top at viewport top) → 1 (section fully gone)
-      const exitProgress = Math.max(0, Math.min(1, -rect.top / vh))
-
-      // Delta scroll this frame → add proportional phi spin
+      // ① Spin while visible — delta scroll → rotate SVG
       const dy = window.scrollY - lastScrollY.current
       lastScrollY.current = window.scrollY
-      // Only spin when section is intersecting viewport (rect.top between -vh and vh)
+
       if (rect.top > -vh && rect.bottom > 0) {
-        phiScroll.current += dy * 0.003   // 0.003 radians per pixel scrolled
+        rotDeg.current += dy * 0.025      // 0.025° per pixel scrolled
+        if (svgRef.current) {
+          svgRef.current.style.transform = `rotate(${rotDeg.current}deg)`
+        }
       }
 
-      // ── 2. Exit bind — canvas zoom-out + dark overlay ─────────────────
-      const canvas = canvasRef.current
-      if (canvas) {
-        // Scale up subtly (globe "zooms into space" as you scroll away)
-        const scale = 1 + exitProgress * 0.08
-        canvas.style.transform = `scale(${scale})`
-      }
-
-      // Dark overlay fades in, merging into the Hero's identical dark bg (#0d0a08)
+      // ② Exit bind — overlay fades to #0d0a08 (matches Hero background exactly)
+      const exitProgress = Math.max(0, Math.min(1, -rect.top / vh))
       if (overlayRef.current) {
-        // Fast fade: fully opaque by 60% exit
-        const opacity = Math.min(1, exitProgress * 1.7)
-        overlayRef.current.style.opacity = opacity.toString()
+        overlayRef.current.style.opacity = Math.min(1, exitProgress * 1.7).toString()
       }
     }
 
@@ -65,119 +75,10 @@ export default function GlobeSection() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // ── Globe init ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const size = () => canvas.offsetWidth
-
-    const build = () => {
-      globeRef.current?.destroy()
-      cancelAnimationFrame(rafRef.current)
-
-      const s = size()
-      if (!s) return
-
-      const globe = createGlobe(canvas, {
-        devicePixelRatio: Math.min(window.devicePixelRatio, 2),
-        width:  s * 2,
-        height: s * 2,
-        phi:    phiAuto.current,
-        theta:  -0.30,           // Northern Europe in frame
-        dark:    1,
-        diffuse: 1.6,
-        mapSamples:    16_000,
-        mapBrightness: 1.4,
-        baseColor:   [0.10, 0.05, 0.03],
-        markerColor: [0.84, 0.21, 0.27],
-        glowColor:   [0.42, 0.10, 0.14],
-        markers: [
-          // London — Kelriva HQ
-          { location: [51.5074, -0.1278], size: 0.09 },
-          // Europe
-          { location: [48.8566,  2.3522], size: 0.033 }, // Paris
-          { location: [50.1109,  8.6821], size: 0.038 }, // Frankfurt
-          { location: [52.3676,  4.9041], size: 0.028 }, // Amsterdam
-          { location: [41.9028, 12.4964], size: 0.028 }, // Rome
-          // Americas
-          { location: [40.7128, -74.006 ], size: 0.048 }, // New York
-          { location: [43.6532, -79.3832], size: 0.028 }, // Toronto
-          { location: [37.7749,-122.4194], size: 0.033 }, // San Francisco
-          // Middle East
-          { location: [25.2048,  55.2708], size: 0.038 }, // Dubai
-          // Asia-Pacific
-          { location: [ 1.3521, 103.8198], size: 0.038 }, // Singapore
-          { location: [35.6762, 139.6503], size: 0.033 }, // Tokyo
-          { location: [-33.865, 151.2099], size: 0.028 }, // Sydney
-        ],
-        arcs: [
-          { from: [51.5074, -0.1278], to: [40.7128, -74.006 ] }, // London → NY
-          { from: [51.5074, -0.1278], to: [25.2048,  55.2708] }, // London → Dubai
-          { from: [51.5074, -0.1278], to: [ 1.3521, 103.8198] }, // London → Singapore
-          { from: [51.5074, -0.1278], to: [50.1109,   8.6821] }, // London → Frankfurt
-          { from: [51.5074, -0.1278], to: [37.7749,-122.4194] }, // London → SF
-        ],
-        arcColor:  [0.84, 0.21, 0.27],
-        arcWidth:  1.2,
-        arcHeight: 0.4,
-      })
-      globeRef.current = globe
-
-      // rAF loop — sum all phi contributors each frame
-      const tick = () => {
-        if (dragStartX.current === null) {
-          phiAuto.current += 0.0025
-        }
-        globe.update({
-          phi:    phiAuto.current + phiDrag.current + dragLive.current + phiScroll.current,
-          width:  size() * 2,
-          height: size() * 2,
-        })
-        rafRef.current = requestAnimationFrame(tick)
-      }
-      rafRef.current = requestAnimationFrame(tick)
-
-      requestAnimationFrame(() => { canvas.style.opacity = '1' })
-    }
-
-    build()
-
-    const onResize = () => build()
-    window.addEventListener('resize', onResize, { passive: true })
-
-    return () => {
-      globeRef.current?.destroy()
-      cancelAnimationFrame(rafRef.current)
-      window.removeEventListener('resize', onResize)
-    }
-  }, [])
-
-  // ── Drag handlers ────────────────────────────────────────────────────────
-  const onPointerDown = useCallback((clientX: number) => {
-    dragStartX.current = clientX
-    setCursor(true)
-  }, [setCursor])
-
-  const onPointerMove = useCallback((clientX: number) => {
-    if (dragStartX.current === null) return
-    dragLive.current = (clientX - dragStartX.current) / 180
-  }, [])
-
-  const onPointerUp = useCallback(() => {
-    if (dragStartX.current !== null) {
-      // Commit drag into permanent phi
-      phiDrag.current += dragLive.current
-      dragLive.current  = 0
-      dragStartX.current = null
-    }
-    setCursor(false)
-  }, [setCursor])
-
   return (
     <section
       ref={sectionRef}
-      aria-label="Kelriva AI — global presence globe"
+      aria-label="Kelriva AI — London as global enterprise hub"
       style={{
         height: '100vh',
         position: 'relative',
@@ -188,51 +89,218 @@ export default function GlobeSection() {
         justifyContent: 'center',
       }}
     >
-      {/* ── Globe canvas ─────────────────────────────────────────────────── */}
-      <canvas
-        ref={canvasRef}
+      {/* ── Network globe SVG ───────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.4, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
         style={{
-          width:  'min(90vw, 90vh)',
-          height: 'min(90vw, 90vh)',
-          opacity: 0,
-          transition: 'opacity 1.2s ease',   // only opacity; transform updated directly for zero lag
-          cursor: 'grab',
-          userSelect: 'none',
-          touchAction: 'none',
-          transformOrigin: 'center center',
-          willChange: 'transform',
+          width: 'min(88vw, 88vh)',
+          height: 'min(88vw, 88vh)',
+          position: 'relative',
         }}
-        onPointerDown={e => onPointerDown(e.clientX)}
-        onPointerMove={e => onPointerMove(e.clientX)}
-        onPointerUp={onPointerUp}
-        onPointerLeave={onPointerUp}
-        onTouchStart={e => onPointerDown(e.touches[0]?.clientX ?? 0)}
-        onTouchMove={e => onPointerMove(e.touches[0]?.clientX ?? 0)}
-        onTouchEnd={onPointerUp}
-      />
+      >
+        <svg
+          ref={svgRef}
+          viewBox="0 0 600 600"
+          style={{
+            width: '100%', height: '100%',
+            willChange: 'transform',
+            transformOrigin: 'center center',
+          }}
+          aria-hidden
+        >
+          <defs>
+            {/* Radial glow behind London */}
+            <radialGradient id="londonGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stopColor="#d63545" stopOpacity="0.18" />
+              <stop offset="100%" stopColor="#d63545" stopOpacity="0"    />
+            </radialGradient>
+            {/* Subtle outer glow on globe edge */}
+            <radialGradient id="edgeGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="75%"  stopColor="transparent" />
+              <stop offset="100%" stopColor="rgba(214,53,69,0.06)" />
+            </radialGradient>
+          </defs>
 
-      {/* ── Radial + vertical vignette ────────────────────────────────────── */}
+          {/* Globe background disc */}
+          <circle cx={CX} cy={CY} r={GR}
+            fill="rgba(13,10,8,0.94)"
+          />
+
+          {/* Concentric rings — latitude grid */}
+          {RINGS.map(f => (
+            <circle key={f} cx={CX} cy={CY} r={f * GR}
+              fill="none" stroke="rgba(214,53,69,0.055)" strokeWidth="1"
+            />
+          ))}
+
+          {/* Radial lines — longitude grid */}
+          {RADIALS.map(a => {
+            const rad = (a * Math.PI) / 180
+            return (
+              <line key={a}
+                x1={CX} y1={CY}
+                x2={CX + Math.sin(rad) * GR}
+                y2={CY - Math.cos(rad) * GR}
+                stroke="rgba(214,53,69,0.04)" strokeWidth="1"
+              />
+            )
+          })}
+
+          {/* ── Connection lines: London → each city ──────────────────── */}
+          {CITIES.map((city, i) => {
+            const { x, y } = polar(city.angle, city.dist)
+            const pathD = `M ${CX} ${CY} L ${x} ${y}`
+            return (
+              <motion.path
+                key={`line-${city.id}`}
+                d={pathD}
+                stroke="rgba(214,53,69,0.28)"
+                strokeWidth="1"
+                fill="none"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{
+                  pathLength: { duration: 1.4, delay: 0.6 + i * 0.1, ease: [0.23, 1, 0.32, 1] },
+                  opacity:    { duration: 0.4, delay: 0.6 + i * 0.1 },
+                }}
+              />
+            )
+          })}
+
+          {/* ── Traveling pulse dots ───────────────────────────────────── */}
+          {CITIES.map((city, i) => {
+            const { x, y } = polar(city.angle, city.dist)
+            const pathD = `M ${CX} ${CY} L ${x} ${y}`
+            const dur = (1.8 + city.dist * 1.4).toFixed(2)
+            const begin = (1.2 + i * 0.22).toFixed(2)
+            return (
+              <circle key={`pulse-${city.id}`} r={2.2} fill="#d63545" fillOpacity="0.85">
+                <animateMotion
+                  path={pathD}
+                  dur={`${dur}s`}
+                  begin={`${begin}s`}
+                  repeatCount="indefinite"
+                />
+              </circle>
+            )
+          })}
+
+          {/* ── City dots ─────────────────────────────────────────────── */}
+          {CITIES.map((city, i) => {
+            const { x, y } = polar(city.angle, city.dist)
+            return (
+              <motion.circle
+                key={`dot-${city.id}`}
+                cx={x} cy={y} r={city.r}
+                fill="#d63545"
+                fillOpacity="0.65"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 1.0 + i * 0.1, ease: [0.23, 1, 0.32, 1] }}
+              />
+            )
+          })}
+
+          {/* ── City name labels (shown for primary hubs) ─────────────── */}
+          {CITIES.filter(c => ['ny','sf','dubai','sg','tokyo'].includes(c.id)).map((city, i) => {
+            const { x, y } = polar(city.angle, city.dist)
+            const dx = city.labelSide === 'right' ? 8 : -8
+            const anchor = city.labelSide === 'right' ? 'start' : 'end'
+            return (
+              <motion.text
+                key={`label-${city.id}`}
+                x={x + dx} y={y + 1}
+                textAnchor={anchor}
+                dominantBaseline="middle"
+                fill="rgba(107,85,72,0.6)"
+                fontSize="8"
+                fontFamily="'JetBrains Mono', monospace"
+                letterSpacing="1.5"
+                style={{ textTransform: 'uppercase' }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 1.6 + i * 0.1 }}
+              >
+                {city.name.toUpperCase()}
+              </motion.text>
+            )
+          })}
+
+          {/* ── London glow halo ──────────────────────────────────────── */}
+          <circle cx={CX} cy={CY} r={70} fill="url(#londonGlow)" />
+
+          {/* ── London pulse rings (animated) ─────────────────────────── */}
+          {[1, 2].map(ring => (
+            <motion.circle
+              key={`pulse-ring-${ring}`}
+              cx={CX} cy={CY}
+              r={10}
+              fill="none"
+              stroke="rgba(214,53,69,0.5)"
+              strokeWidth="1"
+              animate={{ r: [10, 42, 10], opacity: [0.6, 0, 0.6] }}
+              transition={{
+                duration: 2.8,
+                delay: ring * 1.4,
+                repeat: Infinity,
+                ease: 'easeOut',
+              }}
+            />
+          ))}
+
+          {/* ── London dot ────────────────────────────────────────────── */}
+          <circle cx={CX} cy={CY} r={7}   fill="#d63545" />
+          <circle cx={CX} cy={CY} r={3.5} fill="#0d0a08" />
+          <circle cx={CX} cy={CY} r={1.8} fill="#d63545" />
+
+          {/* ── London label ──────────────────────────────────────────── */}
+          <motion.text
+            x={CX} y={CY - 16}
+            textAnchor="middle"
+            fill="rgba(237,229,220,0.55)"
+            fontSize="7.5"
+            fontFamily="'JetBrains Mono', monospace"
+            letterSpacing="2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 1.0 }}
+          >
+            LONDON
+          </motion.text>
+
+          {/* ── Globe border ring ─────────────────────────────────────── */}
+          <circle cx={CX} cy={CY} r={GR}
+            fill="none"
+            stroke="rgba(214,53,69,0.18)"
+            strokeWidth="1"
+          />
+
+          {/* Edge glow */}
+          <circle cx={CX} cy={CY} r={GR}
+            fill="url(#edgeGlow)"
+          />
+        </svg>
+      </motion.div>
+
+      {/* ── Vignette — merges globe into dark page ───────────────────────── */}
       <div
         aria-hidden
         style={{
           position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2,
           background: `
-            radial-gradient(ellipse 68% 68% at 50% 50%,
-              transparent 35%,
-              rgba(13,10,8,.5) 72%,
-              rgba(13,10,8,.94) 100%
-            ),
             linear-gradient(to bottom,
               rgba(13,10,8,1)  0%,
-              rgba(13,10,8,0) 11%,
-              rgba(13,10,8,0) 83%,
+              rgba(13,10,8,0) 10%,
+              rgba(13,10,8,0) 88%,
               rgba(13,10,8,1) 100%
             )
           `,
         }}
       />
 
-      {/* ── Scroll-exit bind overlay — fades to #0d0a08 (same as Hero bg) ── */}
+      {/* ── Scroll-exit bind overlay ─────────────────────────────────────── */}
       <div
         ref={overlayRef}
         aria-hidden
@@ -245,11 +313,11 @@ export default function GlobeSection() {
         }}
       />
 
-      {/* ── Top eyebrow ───────────────────────────────────────────────────── */}
+      {/* ── Top eyebrow ──────────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.85, delay: 0.7, ease: [0.23, 1, 0.32, 1] }}
+        transition={{ duration: 0.85, delay: 0.5, ease: [0.23, 1, 0.32, 1] }}
         style={{
           position: 'absolute', top: 86, left: 0, right: 0,
           textAlign: 'center', zIndex: 4, pointerEvents: 'none',
@@ -257,18 +325,18 @@ export default function GlobeSection() {
       >
         <div style={{
           fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: '.62rem', color: 'rgba(214,53,69,.6)',
+          fontSize: '.62rem', color: 'rgba(214,53,69,.55)',
           letterSpacing: '.28em', textTransform: 'uppercase',
         }}>
           Kelriva AI · Enterprise AI Consultancy
         </div>
       </motion.div>
 
-      {/* ── Bottom coordinate + hint ──────────────────────────────────────── */}
+      {/* ── Bottom coordinate ────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.85, delay: 1.1, ease: [0.23, 1, 0.32, 1] }}
+        transition={{ duration: 0.85, delay: 1.8, ease: [0.23, 1, 0.32, 1] }}
         style={{
           position: 'absolute', bottom: 76, left: 0, right: 0,
           textAlign: 'center', zIndex: 4, pointerEvents: 'none',
@@ -277,19 +345,13 @@ export default function GlobeSection() {
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: '.8rem',
         }}>
-          <span style={{
-            display: 'block', width: 28, height: 1,
-            background: 'linear-gradient(90deg, transparent, rgba(214,53,69,.35))',
-          }} />
+          <span style={{ display: 'block', width: 28, height: 1, background: 'linear-gradient(90deg, transparent, rgba(214,53,69,.35))' }} />
           <span style={{
             fontFamily: 'var(--font-jetbrains), monospace',
             fontSize: '.56rem', color: 'rgba(107,85,72,.45)',
             letterSpacing: '.2em', textTransform: 'uppercase',
           }}>51.5074° N · 0.1278° W · London, UK</span>
-          <span style={{
-            display: 'block', width: 28, height: 1,
-            background: 'linear-gradient(90deg, rgba(214,53,69,.35), transparent)',
-          }} />
+          <span style={{ display: 'block', width: 28, height: 1, background: 'linear-gradient(90deg, rgba(214,53,69,.35), transparent)' }} />
         </div>
         <div style={{
           marginTop: '.6rem',
@@ -297,7 +359,7 @@ export default function GlobeSection() {
           fontSize: '.5rem', color: 'rgba(74,96,112,.28)',
           letterSpacing: '.16em', textTransform: 'uppercase',
         }}>
-          Drag to explore · Scroll to continue
+          Scroll to continue
         </div>
       </motion.div>
     </section>
