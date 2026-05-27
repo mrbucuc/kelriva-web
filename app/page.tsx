@@ -6,7 +6,7 @@ import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import QuoteStrip from '@/components/QuoteStrip'
 import Services from '@/components/Services'
-import VideoSection from '@/components/VideoSection'
+import GlobeSection from '@/components/GlobeSection'
 import ProofNumbers from '@/components/ProofNumbers'
 import CaseStudies from '@/components/CaseStudies'
 import Process from '@/components/Process'
@@ -24,7 +24,7 @@ export default function Page() {
     <>
       <GrainOverlay />
       <Nav onBookCall={openChat} />
-      <VideoSection />
+      <GlobeSection />
       <Hero onBookCall={openChat} />
       <QuoteStrip />
       <Services />
