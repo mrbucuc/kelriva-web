@@ -5,7 +5,6 @@ import Image from 'next/image'
 
 export default function VideoSection() {
   const videoRef   = useRef<HTMLVideoElement>(null)
-  const canvasRef  = useRef<HTMLCanvasElement>(null)
   const [playing, setPlaying] = useState(true)
   const [ready,   setReady]   = useState(false)
 
@@ -17,135 +16,6 @@ export default function VideoSection() {
     v.addEventListener('canplay', onCanPlay)
     if (v.readyState >= 3) setReady(true)
     return () => v.removeEventListener('canplay', onCanPlay)
-  }, [])
-
-  // ── Particle canvas — layered IN FRONT of video ──────────────────────────
-  useEffect(() => {
-    const cv = canvasRef.current
-    if (!cv) return
-    const ctx = cv.getContext('2d')!
-
-    const resize = () => { cv.width = cv.offsetWidth; cv.height = cv.offsetHeight }
-    resize()
-    window.addEventListener('resize', resize)
-
-    type Node = {
-      x: number; y: number; vx: number; vy: number
-      r: number; o: number; hub: boolean; phase: number; speed: number
-    }
-
-    const make = (hub: boolean): Node => ({
-      x: Math.random() * cv.width, y: Math.random() * cv.height,
-      vx: (Math.random() - .5) * (hub ? .22 : .38),
-      vy: (Math.random() - .5) * (hub ? .22 : .38),
-      r:  hub ? Math.random() * 3.5 + 4 : Math.random() * 2 + .9,
-      o:  hub ? Math.random() * .28 + .68 : Math.random() * .45 + .28,
-      hub, phase: Math.random() * Math.PI * 2, speed: Math.random() * .9 + .45,
-    })
-
-    const nodes: Node[] = [
-      ...Array.from({ length: 95 }, () => make(false)),
-      ...Array.from({ length: 14 }, () => make(true)),
-    ]
-
-    let mX = -999, mY = -999
-    const onMouse = (e: MouseEvent) => {
-      const r = cv.getBoundingClientRect()
-      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
-        mX = e.clientX - r.left; mY = e.clientY - r.top
-      } else { mX = -999; mY = -999 }
-    }
-    const onLeave = () => { mX = -999; mY = -999 }
-    const onTouch = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        const r = cv.getBoundingClientRect(), t = e.touches[0]
-        if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
-          mX = t.clientX - r.left; mY = t.clientY - r.top
-        }
-      }
-    }
-    window.addEventListener('mousemove', onMouse)
-    window.addEventListener('touchmove', onTouch, { passive: true })
-    window.addEventListener('touchend',  onLeave)
-
-    const LINK = 200, MD = 235
-
-    const dot = (x: number, y: number, r: number, alpha: number, hub: boolean) => {
-      const hR = hub ? r * 7 : r * 5.5
-      const hA = hub ? alpha * .26 : alpha * .14
-      const g  = ctx.createRadialGradient(x, y, 0, x, y, hR)
-      g.addColorStop(0,   `rgba(214,53,69,${Math.min(hA * 3.5, 1)})`)
-      g.addColorStop(.38, `rgba(214,53,69,${hA})`)
-      g.addColorStop(1,   'rgba(214,53,69,0)')
-      ctx.beginPath(); ctx.arc(x, y, hR, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill()
-      ctx.save()
-      ctx.shadowColor = hub ? '#ff1020' : '#d63545'
-      ctx.shadowBlur  = hub ? 28 : 16
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2)
-      ctx.fillStyle = `rgba(${hub ? '255,48,58' : '220,58,72'},${alpha})`; ctx.fill()
-      if (hub) {
-        ctx.shadowBlur = 52; ctx.shadowColor = 'rgba(214,53,69,.8)'
-        ctx.beginPath(); ctx.arc(x, y, r * .5, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255,112,122,${alpha * .95})`; ctx.fill()
-      }
-      ctx.restore()
-    }
-
-    let raf: number
-    const draw = () => {
-      const W = cv.width, H = cv.height
-      ctx.clearRect(0, 0, W, H)
-      const t = Date.now() * .001
-      nodes.forEach(n => {
-        n.x += n.vx; n.y += n.vy
-        if (n.x < 0) { n.x = 0; n.vx *= -1 } if (n.x > W) { n.x = W; n.vx *= -1 }
-        if (n.y < 0) { n.y = 0; n.vy *= -1 } if (n.y > H) { n.y = H; n.vy *= -1 }
-      })
-      ctx.save()
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const a = nodes[i], b = nodes[j]
-          const dx = a.x - b.x, dy = a.y - b.y, d = Math.sqrt(dx*dx + dy*dy)
-          if (d < LINK) {
-            const f = 1 - d/LINK, isHub = a.hub || b.hub
-            ctx.beginPath()
-            ctx.strokeStyle = `rgba(214,53,69,${f * (isHub ? .58 : .3)})`
-            ctx.lineWidth = f * (isHub ? 1.7 : 1)
-            ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke()
-          }
-        }
-      }
-      ctx.restore()
-      if (mX > 0) {
-        ctx.save()
-        nodes.forEach(n => {
-          const dx = n.x - mX, dy = n.y - mY, d = Math.sqrt(dx*dx + dy*dy)
-          if (d < MD) {
-            ctx.beginPath()
-            ctx.strokeStyle = `rgba(214,53,69,${(1-d/MD)*.8})`
-            ctx.lineWidth = (1-d/MD) * 2.2
-            ctx.moveTo(n.x, n.y); ctx.lineTo(mX, mY); ctx.stroke()
-          }
-        })
-        ctx.restore()
-        dot(mX, mY, 4.5, .9, true)
-      }
-      nodes.forEach(n => {
-        const sp = Math.sin(t * n.speed       + n.phase) * .38 + .84
-        const bp = Math.sin(t * n.speed * .62 + n.phase + 1.4) * .3 + .88
-        dot(n.x, n.y, n.r * sp, n.o * bp, n.hub)
-      })
-      raf = requestAnimationFrame(draw)
-    }
-    raf = requestAnimationFrame(draw)
-
-    return () => {
-      window.removeEventListener('resize',    resize)
-      window.removeEventListener('mousemove', onMouse)
-      window.removeEventListener('touchmove', onTouch)
-      window.removeEventListener('touchend',  onLeave)
-      cancelAnimationFrame(raf)
-    }
   }, [])
 
   const toggle = () => {
@@ -211,13 +81,6 @@ export default function VideoSection() {
         height: 'max(100vh, calc(100vw * 0.5625))',
         objectFit: 'cover', zIndex: 1,
         opacity: ready ? 1 : 0, transition: 'opacity .8s ease',
-      }} />
-
-      {/* Particle canvas — IN FRONT of video */}
-      <canvas ref={canvasRef} style={{
-        position: 'absolute', inset: 0, width: '100%', height: '100%',
-        zIndex: 6, pointerEvents: 'none',
-        opacity: ready ? 1 : 0, transition: 'opacity 1.2s ease .4s',
       }} />
 
       {/* Vignette */}

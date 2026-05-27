@@ -5,6 +5,10 @@ import { NextResponse } from 'next/server'
 export const maxDuration = 60
 
 export async function POST(req: Request) {
+  const secret = process.env.AGENT_SECRET
+  if (secret && req.headers.get('x-agent-secret') !== secret) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
+  }
 
   let body: Record<string, string>
   try {
