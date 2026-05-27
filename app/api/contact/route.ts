@@ -1,7 +1,25 @@
 import { Resend } from 'resend'
 import { NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rateLimit'
+
+// Escape HTML to prevent injection in email templates
+function esc(str: string | undefined): string {
+  if (!str) return ''
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
 
 export async function POST(req: Request) {
+  // Rate limit: 5 submissions per IP per minute
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  if (!rateLimit(ip, 'contact')) {
+    return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 })
+  }
+
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   let body: Record<string, string>
@@ -11,7 +29,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { name, company, email, phone, vertical, service, note, ts } = body
+  const { name: _n, company: _c, email: _e, phone: _p, vertical: _v, service: _s, note: _note, ts } = body
+
+  // Sanitise all user-supplied fields before use in HTML email
+  const name     = esc(_n)
+  const company  = esc(_c)
+  const email    = esc(_e)
+  const phone    = esc(_p)
+  const vertical = esc(_v)
+  const service  = esc(_s)
+  const note     = esc(_note)
 
   // Run Resend and Zapier independently — one failing must not block the other
   const [emailResult, zapierResult, researchResult] = await Promise.allSettled([

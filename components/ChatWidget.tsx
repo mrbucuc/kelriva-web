@@ -49,7 +49,14 @@ export default function ChatWidget({ isOpen, onToggle }: ChatWidgetProps) {
   }, [])
 
   const addUserMsg = useCallback((text: string) => {
-    setMessages(prev => [...prev, { type: 'user', html: text }])
+    // Escape user input before storing as html to prevent XSS
+    const escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+    setMessages(prev => [...prev, { type: 'user', html: escaped }])
     setQuickReplies([])
   }, [])
 

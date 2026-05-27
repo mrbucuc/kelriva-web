@@ -1,7 +1,14 @@
 import { Resend } from 'resend'
 import { NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rateLimit'
 
 export async function POST(req: Request) {
+  // Rate limit: 3 subscribe attempts per IP per minute
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  if (!rateLimit(ip, 'subscribe', 3)) {
+    return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 })
+  }
+
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   let email: string
