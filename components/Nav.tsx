@@ -49,9 +49,11 @@ export default function Nav({ onBookCall }: NavProps) {
         borderBottom: scrolled ? '1px solid rgba(214,53,69,.07)' : '1px solid transparent',
       }}>
         {/* Logo */}
-        <div
-          onClick={() => { close(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-          style={{ display: 'flex', alignItems: 'center', gap: '.85rem', cursor: 'pointer' }}
+        <a
+          href="/"
+          aria-label="Kelriva AI — go to homepage"
+          onClick={(e) => { e.preventDefault(); close(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+          style={{ display: 'flex', alignItems: 'center', gap: '.85rem', cursor: 'pointer', textDecoration: 'none' }}
         >
           <Image
             src="/mark-kelriva.png"
@@ -60,7 +62,7 @@ export default function Nav({ onBookCall }: NavProps) {
             height={59}
             style={{ display: 'block' }}
           />
-        </div>
+        </a>
 
         {/* Desktop links */}
         <ul style={{ display: 'flex', gap: '2.5rem', listStyle: 'none' }} className="nav-links-desktop">
@@ -121,7 +123,7 @@ export default function Nav({ onBookCall }: NavProps) {
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           style={{
             display: 'none', background: 'none', border: 'none',
-            cursor: 'pointer', padding: '6px', lineHeight: 0,
+            cursor: 'pointer', padding: '11px', lineHeight: 0,
           }}
         >
           {menuOpen ? (

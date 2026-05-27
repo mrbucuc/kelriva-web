@@ -119,3 +119,22 @@ a { text-decoration: none; color: inherit; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #0d0a08; }
 ::-webkit-scrollbar-thumb { background: rgba(214,53,69,.2); }
+
+/* Skip to content — accessibility */
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 1.5rem;
+  z-index: 9999;
+  background: #d63545;
+  color: #0d0a08;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: .6rem 1.2rem;
+  text-decoration: none;
+  transition: top .2s;
+}
+.skip-link:focus { top: 1rem; }

@@ -1,105 +1,98 @@
 'use client'
 
-import { motion, type Variants } from 'framer-motion'
-
-const STATS = [
-  { value: '2',     em: true,  suffix: '',    label: 'Live production\nAI systems' },
-  { value: '£1.17', em: true,  suffix: 'B',   label: 'UK Gov AI\nspend 2025' },
-  { value: '48',    em: true,  suffix: 'h',   label: 'Proposal\nturnaround' },
-  { value: '100',   em: true,  suffix: '%',   label: 'Fixed-fee\ndelivery' },
+// Duplicated so the seamless loop works — CSS handles the animation
+const ITEMS = [
+  { value: '2',      label: 'AI Systems in Production' },
+  { value: '48h',    label: 'Proposal Turnaround'       },
+  { value: '100%',   label: 'Fixed-Fee Delivery'        },
+  { value: '£1.17B', label: 'UK Gov AI Spend · 2025'   },
 ]
-
-const containerVariants: Variants = {
-  hidden:   {},
-  visible:  { transition: { staggerChildren: 0.1 } },
-}
-
-const numVariants: Variants = {
-  hidden:  { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: 'easeOut' } },
-}
 
 export default function ProofNumbers() {
   return (
     <div style={{
-      background: 'rgba(13,10,8,0.12)',
-      padding: '6rem 3rem',
-      textAlign: 'center',
-      position: 'relative',
+      borderTop:    '1px solid rgba(214,53,69,.1)',
+      borderBottom: '1px solid rgba(214,53,69,.1)',
+      padding: '1.6rem 0',
       overflow: 'hidden',
+      background: 'rgba(10,7,6,.55)',
+      position: 'relative',
     }}>
-      {/* Background watermark */}
+      {/* Fade left edge */}
       <div style={{
-        position: 'absolute',
-        fontFamily: 'var(--font-instrument), sans-serif',
-        fontWeight: 800,
-        fontSize: 'clamp(8rem,20vw,18rem)',
-        color: 'rgba(214,53,69,.025)',
-        top: '50%', left: '50%',
-        transform: 'translate(-50%,-50%)',
-        whiteSpace: 'nowrap',
-        letterSpacing: '-.04em',
-        pointerEvents: 'none',
-        userSelect: 'none',
-      }}>KELRIVA</div>
+        position: 'absolute', left: 0, top: 0, bottom: 0, width: 120,
+        background: 'linear-gradient(90deg, #0d0a08 30%, transparent)',
+        zIndex: 2, pointerEvents: 'none',
+      }} />
+      {/* Fade right edge */}
+      <div style={{
+        position: 'absolute', right: 0, top: 0, bottom: 0, width: 120,
+        background: 'linear-gradient(-90deg, #0d0a08 30%, transparent)',
+        zIndex: 2, pointerEvents: 'none',
+      }} />
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: '-80px' }}
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '5.5rem',
-          flexWrap: 'wrap',
-          position: 'relative',
-          zIndex: 1,
-        }}
-        className="proof-nums"
-      >
-        {STATS.map((s, i) => (
-          <motion.div key={s.label} variants={numVariants} style={{ position: 'relative' }}>
-            <span style={{
-              fontFamily: 'var(--font-cormorant), serif',
-              fontStyle: 'italic',
-              fontSize: 'clamp(3rem,7vw,5.8rem)',
-              fontWeight: 300,
-              color: '#ffffff',
-              display: 'block',
-              lineHeight: 1,
-              marginBottom: '.4rem',
-            }}>
-              <em style={{ fontStyle: 'normal', color: '#d63545' }}>{s.value}</em>
-              {s.suffix}
-            </span>
-            <span style={{
-              fontFamily: 'var(--font-jetbrains), monospace',
-              fontSize: '.66rem',
-              color: '#6b5548',
-              letterSpacing: '.15em',
-              textTransform: 'uppercase',
-              whiteSpace: 'pre-line',
-            }}>{s.label}</span>
-
-            {/* Divider except last */}
-            {i < STATS.length - 1 && (
-              <div style={{
-                position: 'absolute',
-                right: '-2.8rem', top: '50%',
-                transform: 'translateY(-50%)',
-                width: 1, height: 55,
-                background: 'linear-gradient(transparent,#a01828,transparent)',
-              }} className="proof-divider" />
-            )}
-          </motion.div>
+      {/* Ticker track — doubled for seamless loop */}
+      <div className="ticker-track">
+        {[...ITEMS, ...ITEMS, ...ITEMS].map((item, i) => (
+          <div key={i} className="ticker-item">
+            <span className="ticker-value">{item.value}</span>
+            <span className="ticker-sep">—</span>
+            <span className="ticker-label">{item.label}</span>
+            <span className="ticker-dot">·</span>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       <style>{`
-        @media (max-width: 900px) {
-          .proof-nums    { gap: 2.5rem !important; }
-          .proof-divider { display: none !important; }
+        .ticker-track {
+          display: inline-flex;
+          align-items: center;
+          white-space: nowrap;
+          animation: ticker-scroll 32s linear infinite;
+          gap: 0;
+        }
+        .ticker-track:hover { animation-play-state: paused; }
+
+        .ticker-item {
+          display: inline-flex;
+          align-items: baseline;
+          gap: .75rem;
+          padding: 0 2.5rem;
+        }
+
+        .ticker-value {
+          font-family: var(--font-cormorant), serif;
+          font-style: italic;
+          font-weight: 300;
+          font-size: 1.5rem;
+          color: #ffffff;
+          line-height: 1;
+        }
+
+        .ticker-sep {
+          font-family: var(--font-jetbrains), monospace;
+          font-size: .55rem;
+          color: rgba(214,53,69,.4);
+          letter-spacing: .1em;
+        }
+
+        .ticker-label {
+          font-family: var(--font-jetbrains), monospace;
+          font-size: .6rem;
+          color: #6b5548;
+          letter-spacing: .16em;
+          text-transform: uppercase;
+        }
+
+        .ticker-dot {
+          color: rgba(214,53,69,.35);
+          font-size: 1.2rem;
+          padding-left: 2.5rem;
+        }
+
+        @keyframes ticker-scroll {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-33.333%); }
         }
       `}</style>
     </div>

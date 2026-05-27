@@ -172,6 +172,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <a href="#hero" className="skip-link">Skip to content</a>
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=G-NQ7ENKQ1DK"
