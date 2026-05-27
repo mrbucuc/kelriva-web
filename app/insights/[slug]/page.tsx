@@ -50,9 +50,13 @@ export default async function ArticlePage({
 }: {
   params: Promise<{ slug: string }>
 }) {
-  const { slug }  = await params
-  const article   = getArticle(slug)
+  const { slug }    = await params
+  const article     = getArticle(slug)
   if (!article) notFound()
+
+  const related = (article.relatedArticles ?? [])
+    .map(s => getArticle(s))
+    .filter((a): a is NonNullable<typeof a> => !!a && a.status === 'published')
 
   const breadcrumbLd = {
     '@context': 'https://schema.org',
@@ -338,6 +342,73 @@ export default async function ArticlePage({
           </div>
         </div>
 
+        {/* ── Related articles ─────────────────────────────────────────── */}
+        {related.length > 0 && (
+          <div style={{
+            maxWidth: 760,
+            margin: '0 auto',
+            padding: '0 3rem 4rem',
+          }} className="article-pad">
+            <div style={{
+              borderTop: '1px solid rgba(214,53,69,.08)',
+              paddingTop: '3rem',
+            }}>
+              <div style={{
+                fontFamily: 'var(--font-jetbrains), monospace',
+                fontSize: '.58rem',
+                color: '#d63545',
+                letterSpacing: '.22em',
+                textTransform: 'uppercase',
+                marginBottom: '1.5rem',
+                opacity: .8,
+              }}>
+                Related reading
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {related.map(r => (
+                  <a key={r.slug} href={`/insights/${r.slug}`} style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '.35rem',
+                    padding: '1.25rem 1.5rem',
+                    border: '1px solid rgba(214,53,69,.08)',
+                    background: 'rgba(255,255,255,.012)',
+                    transition: 'border-color .2s, background .2s',
+                    textDecoration: 'none',
+                  }} className="related-card">
+                    <span style={{
+                      fontFamily: 'var(--font-jetbrains), monospace',
+                      fontSize: '.54rem',
+                      color: '#d63545',
+                      letterSpacing: '.15em',
+                      textTransform: 'uppercase',
+                    }}>
+                      {categoryLabel[r.category]}
+                    </span>
+                    <span style={{
+                      fontFamily: 'var(--font-cormorant), serif',
+                      fontWeight: 600,
+                      fontStyle: 'italic',
+                      fontSize: 'clamp(1.1rem, 1.8vw, 1.3rem)',
+                      color: '#ffffff',
+                      lineHeight: 1.2,
+                    }}>
+                      {r.title}
+                    </span>
+                    <span style={{
+                      fontSize: '.83rem',
+                      color: '#6b5548',
+                      lineHeight: 1.6,
+                    }}>
+                      {r.excerpt}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ── Back to insights ─────────────────────────────────────────── */}
         <div style={{
           borderTop: '1px solid rgba(214,53,69,.06)',
@@ -361,6 +432,7 @@ export default async function ArticlePage({
 
       <style>{`
         .back-link:hover { color: #d63545 !important; }
+        .related-card:hover { border-color: rgba(214,53,69,.28) !important; background: rgba(255,255,255,.025) !important; }
         @media (max-width: 640px) {
           .article-pad { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
         }

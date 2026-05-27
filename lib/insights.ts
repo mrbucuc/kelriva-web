@@ -11,15 +11,16 @@ export type Block =
   | { t: 'lead'; v: string }   // larger opening paragraph
 
 export type Article = {
-  slug:     string
-  title:    string
-  category: Category
-  date:     string    // YYYY-MM-DD
-  readTime: number    // minutes
-  excerpt:  string    // 1–2 sentences shown on listing card
-  body:     Block[]
-  tags:     string[]
-  status:   'published' | 'coming-soon'
+  slug:            string
+  title:           string
+  category:        Category
+  date:            string    // YYYY-MM-DD
+  readTime:        number    // minutes
+  excerpt:         string    // 1–2 sentences shown on listing card
+  body:            Block[]
+  tags:            string[]
+  status:          'published' | 'coming-soon'
+  relatedArticles?: string[] // slugs of related articles
 }
 
 export const categoryLabel: Record<Category, string> = {
@@ -39,7 +40,8 @@ export const articles: Article[] = [
     readTime: 5,
     excerpt:  'Real data from 50,000+ businesses shows why model-agnostic AI infrastructure is the most critical enterprise decision of 2026. Build to never be locked in again.',
     status:   'published',
-    tags:     ['Enterprise AI', 'AI Strategy', 'London Tech', 'LLM'],
+    tags:            ['Enterprise AI', 'AI Strategy', 'London Tech', 'LLM'],
+    relatedArticles: ['amazon-ai-usage-wrong-metric', 'four-layer-ai-stack-audit'],
     body: [
       {
         t: 'lead',
@@ -119,7 +121,8 @@ export const articles: Article[] = [
     readTime: 5,
     status:   'published',
     excerpt:  'Amazon\'s internal data revealed a counterintuitive truth: winning businesses don\'t measure AI usage — they measure what changes because of it. Here\'s the framework.',
-    tags:     ['Enterprise AI', 'AI Strategy', 'Productivity', 'ROI'],
+    tags:            ['Enterprise AI', 'AI Strategy', 'Productivity', 'ROI'],
+    relatedArticles: ['four-layer-ai-stack-audit', 'model-agnostic-infrastructure-2026'],
     body: [
       {
         t: 'lead',
@@ -199,7 +202,8 @@ export const articles: Article[] = [
     readTime: 6,
     status:   'published',
     excerpt:  'Before writing a line of code, we run every client through the same 60-minute audit. Four layers, four questions — a clear picture of where AI creates value vs. cost.',
-    tags:     ['AI Strategy', 'Enterprise AI', 'AI Readiness', 'Consultancy'],
+    tags:            ['AI Strategy', 'Enterprise AI', 'AI Readiness', 'Consultancy'],
+    relatedArticles: ['amazon-ai-usage-wrong-metric', 'model-agnostic-infrastructure-2026'],
     body: [
       {
         t: 'lead',
