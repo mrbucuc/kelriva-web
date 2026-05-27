@@ -68,6 +68,21 @@ export default function Footer() {
               020 3866 1197 · info@kelriva.ai
             </div>
 
+            {/* Procurement credentials */}
+            <div style={{
+              fontFamily: 'var(--font-jetbrains), monospace',
+              fontSize: '.54rem',
+              color: 'rgba(74,96,112,.35)',
+              lineHeight: 1.9,
+              paddingTop: '1rem',
+              borderTop: '1px solid rgba(214,53,69,.06)',
+              marginBottom: '1.6rem',
+            }}>
+              <div style={{ color: 'rgba(214,53,69,.3)', letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: '.35rem', fontSize: '.5rem' }}>Registrations</div>
+              D-U-N-S · 234778807<br />
+              PPON · PYXB-7547-PXGW
+            </div>
+
             {/* LinkedIn */}
             <a
               href="https://www.linkedin.com/company/kelriva-ai"
