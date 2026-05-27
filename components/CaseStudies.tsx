@@ -8,7 +8,7 @@ const CASES = [
     tag: 'Corporate Coaching · AI Matching',
     title: 'AI-Assisted\nCoach Matching',
     client: 'bettercoach',
-    status: 'Live system',
+    status: 'Live',
     color: '#d63545',
     metrics: [
       { value: '7 days → seconds', label: 'Matching time' },
@@ -20,7 +20,7 @@ const CASES = [
     solution:
       'We built a privacy-aware matching engine combining semantic search, RAG-based retrieval, keyword scoring, and proximity signals. The system surfaces ranked coach shortlists from unstructured, multilingual client inputs — with every match explainable and reviewable by a human operator.',
     impact:
-      'Matching time dropped from 7 days to seconds. Match quality became measurable for the first time via rematch rate, acceptance rate, and override rate. The operations team shifted from manual searching to expert review — and the system is now a reusable AI platform extensible into triage, intake, and profile enrichment.',
+      'Matching time dropped from 7 days to seconds. Match quality became measurable for the first time via rematch rate, acceptance rate, and override rate. The operations team shifted from manual searching to expert review.',
   },
   {
     index: '02',
@@ -35,22 +35,22 @@ const CASES = [
       { value: 'Consistent', label: 'Across every client' },
     ],
     challenge:
-      'Onboarding new clients onto a complex software platform required teams to manually read through PDFs, spreadsheets, emails, and discovery call notes — then interpret requirements, identify gaps, and decide what to configure first. With many dependencies, the process was slow, error-prone, and impossible to scale.',
+      'Onboarding new clients onto a complex software platform required teams to manually read through PDFs, spreadsheets, emails, and discovery call notes — then interpret requirements, identify gaps, and decide what to configure first.',
     solution:
-      'We built an AI system that ingests raw client documents across formats, extracts structured requirements, identifies missing information, and maps each requirement to the correct system action. It then generates a dependency-aware execution plan showing what to build, update, link, validate, or escalate — in the right order.',
+      'We built an AI system that ingests raw client documents across formats, extracts structured requirements, identifies missing information, and maps each requirement to the correct system action — generating a dependency-aware execution plan.',
     impact:
-      'Manual effort to prepare a client setup plan dropped from days to hours. Teams started from a structured, reviewable plan rather than blank-page interpretation. Missed steps and rework were eliminated, the client experience improved, and the system created a scalable foundation for automating repeatable onboarding workflows.',
+      'Manual effort to prepare a client setup plan dropped from days to hours. Missed steps and rework were eliminated, the client experience improved, and the system created a scalable foundation for automating repeatable onboarding workflows.',
   },
 ]
 
 const fadeUp: Variants = {
-  hidden:  { opacity: 0, y: 24 },
+  hidden:  { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.23, 1, 0.32, 1] } },
 }
 
 export default function CaseStudies() {
   return (
-    <section id="case-studies" style={{ background: 'transparent', padding: '7rem 3rem' }}>
+    <section id="case-studies" style={{ padding: '8rem 3rem' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Header */}
@@ -79,137 +79,163 @@ export default function CaseStudies() {
             fontSize: 'clamp(2rem,4.5vw,3.6rem)',
             fontWeight: 300, fontStyle: 'italic',
             color: '#ffffff', lineHeight: 1.1,
-            letterSpacing: '-.02em', marginBottom: '4rem',
+            letterSpacing: '-.02em', marginBottom: '5rem',
           }}
         >
           Systems already<br />
           <em>running in the real world.</em>
         </motion.h2>
 
-        {/* Cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        {/* Case studies — editorial spread layout */}
+        <div>
           {CASES.map((c, i) => (
-            <CaseCard key={c.index} {...c} delay={i * 0.12} />
+            <CaseSpread key={c.index} {...c} delay={i * 0.1} last={i === CASES.length - 1} />
           ))}
         </div>
+
       </div>
 
       <style>{`
         @media (max-width: 900px) {
-          section#case-studies { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
-          .case-cols { grid-template-columns: 1fr !important; }
-          .case-metrics { grid-template-columns: 1fr 1fr !important; }
+          section#case-studies { padding: 5rem 1.5rem !important; }
+          .cs-upper { grid-template-columns: 1fr !important; }
+          .cs-metrics { grid-template-columns: 1fr 1fr !important; }
+          .cs-body { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 560px) {
+          .cs-metrics { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </section>
   )
 }
 
-function CaseCard({
+function CaseSpread({
   index, tag, title, client, status, color,
-  metrics, challenge, solution, impact, delay,
-}: typeof CASES[0] & { delay: number }) {
+  metrics, challenge, solution, impact, delay, last,
+}: typeof CASES[0] & { delay: number; last: boolean }) {
   return (
-    <motion.div
+    <motion.article
       variants={fadeUp}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: '-60px' }}
+      viewport={{ once: true, margin: '-50px' }}
       transition={{ delay }}
       style={{
-        background: 'rgba(13,10,8,0.80)',
-        backdropFilter: 'blur(14px)',
-        WebkitBackdropFilter: 'blur(14px)',
-        border: '1px solid rgba(255,255,255,.05)',
-        borderTop: `2px solid ${color}`,
-        padding: '3rem',
+        borderTop: '1px solid rgba(214,53,69,.1)',
+        paddingTop: '3.5rem',
+        paddingBottom: last ? 0 : '4rem',
+        borderBottom: last ? 'none' : '1px solid rgba(214,53,69,.05)',
+        marginBottom: last ? 0 : '0',
         position: 'relative',
-        overflow: 'hidden',
       }}
     >
-      {/* Large background index */}
-      <div style={{
-        position: 'absolute', top: '1.5rem', right: '2rem',
-        fontFamily: 'var(--font-jetbrains), monospace',
-        fontSize: '7rem', fontWeight: 700,
-        color: 'rgba(255,255,255,.02)',
-        lineHeight: 1, pointerEvents: 'none',
-        userSelect: 'none',
-      }}>{index}</div>
+      {/* Upper section: index + title / tag + status */}
+      <div
+        className="cs-upper"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '72px 1fr auto',
+          gap: '0 3rem',
+          alignItems: 'start',
+          marginBottom: '2.5rem',
+        }}
+      >
+        {/* Large index number */}
+        <div style={{
+          fontFamily: 'var(--font-jetbrains), monospace',
+          fontSize: '.68rem', color,
+          letterSpacing: '.14em',
+          paddingTop: '.3rem',
+          opacity: .8,
+        }}>{index}</div>
 
-      {/* Top row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.8rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{
+        {/* Title + tag */}
+        <div>
+          <div style={{
             fontFamily: 'var(--font-jetbrains), monospace',
-            fontSize: '.6rem', color,
-            letterSpacing: '.18em', textTransform: 'uppercase',
-            border: `1px solid ${color}44`,
-            padding: '.22rem .7rem',
-          }}>{index}</span>
-          <span style={{
-            fontFamily: 'var(--font-jetbrains), monospace',
-            fontSize: '.6rem', color: '#6b5548',
-            letterSpacing: '.12em', textTransform: 'uppercase',
-          }}>{tag}</span>
+            fontSize: '.58rem', color: 'rgba(107,85,72,.6)',
+            letterSpacing: '.14em', textTransform: 'uppercase',
+            marginBottom: '.8rem',
+          }}>{tag}</div>
+          <h3 style={{
+            fontFamily: 'var(--font-cormorant), serif',
+            fontStyle: 'italic', fontWeight: 300,
+            fontSize: 'clamp(1.8rem,3vw,2.8rem)',
+            color: '#ffffff', lineHeight: 1.08,
+            letterSpacing: '-.02em',
+            whiteSpace: 'pre-line',
+            margin: 0,
+          }}>{title}</h3>
         </div>
-        <span style={{
+
+        {/* Status badge */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '.4rem',
           fontFamily: 'var(--font-jetbrains), monospace',
           fontSize: '.58rem', color: '#00e09c',
-          display: 'flex', alignItems: 'center', gap: '.35rem',
+          letterSpacing: '.12em', textTransform: 'uppercase',
+          paddingTop: '.3rem',
+          whiteSpace: 'nowrap',
         }}>
           <span style={{
             width: 5, height: 5, borderRadius: '50%',
             background: '#00e09c',
             display: 'inline-block',
+            flexShrink: 0,
+            animation: 'statusBlink 2.4s ease infinite',
           }} />
-          {status} · {client}
-        </span>
+          {status}
+        </div>
       </div>
-
-      {/* Title */}
-      <h3 style={{
-        fontFamily: 'var(--font-cormorant), serif',
-        fontStyle: 'italic', fontWeight: 300,
-        fontSize: 'clamp(1.8rem,3vw,2.6rem)',
-        color: '#ffffff', lineHeight: 1.1,
-        letterSpacing: '-.02em', marginBottom: '2rem',
-        whiteSpace: 'pre-line',
-      }}>{title}</h3>
 
       {/* Metrics strip */}
       <div
-        className="case-metrics"
+        className="cs-metrics"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: '1px',
-          background: `${color}15`,
-          marginBottom: '2.5rem',
-          border: `1px solid ${color}15`,
+          marginBottom: '2.75rem',
+          background: `rgba(214,53,69,.06)`,
+          borderTop: `1px solid ${color}22`,
+          borderBottom: `1px solid ${color}22`,
         }}
       >
-        {metrics.map(m => (
-          <div key={m.label} style={{ padding: '1.2rem 1.4rem', background: 'rgba(13,10,8,0.88)' }}>
+        {metrics.map((m, mi) => (
+          <div
+            key={m.label}
+            style={{
+              padding: '1.1rem 1.5rem',
+              borderLeft: mi > 0 ? `1px solid ${color}18` : 'none',
+            }}
+          >
             <div style={{
               fontFamily: 'var(--font-jetbrains), monospace',
-              fontSize: '.95rem', color,
+              fontSize: '.9rem', color,
               fontWeight: 400, marginBottom: '.3rem',
               letterSpacing: '-.01em',
             }}>{m.value}</div>
             <div style={{
               fontFamily: 'var(--font-jetbrains), monospace',
-              fontSize: '.58rem', color: '#6b5548',
-              letterSpacing: '.14em', textTransform: 'uppercase',
+              fontSize: '.56rem', color: 'rgba(107,85,72,.7)',
+              letterSpacing: '.16em', textTransform: 'uppercase',
             }}>{m.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Three columns */}
+      {/* Three-column body */}
       <div
-        className="case-cols"
-        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2rem' }}
+        className="cs-body"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: '3rem',
+          paddingLeft: 'calc(72px + 3rem)',
+        }}
       >
         {[
           { label: 'Challenge', body: challenge },
@@ -219,24 +245,18 @@ function CaseCard({
           <div key={label}>
             <div style={{
               fontFamily: 'var(--font-jetbrains), monospace',
-              fontSize: '.6rem', color,
+              fontSize: '.58rem', color,
               letterSpacing: '.2em', textTransform: 'uppercase',
-              marginBottom: '.75rem',
-              display: 'flex', alignItems: 'center', gap: '.4rem',
-            }}>
-              <span style={{
-                display: 'inline-block', width: 20, height: 1,
-                background: `linear-gradient(90deg,${color},transparent)`,
-              }} />
-              {label}
-            </div>
+              marginBottom: '.9rem',
+              opacity: .8,
+            }}>{label}</div>
             <p style={{
-              fontSize: '.84rem', color: 'rgba(237,229,220,.6)',
-              lineHeight: 1.8, margin: 0,
+              fontSize: '.85rem', color: 'rgba(154,122,106,.75)',
+              lineHeight: 1.85, margin: 0,
             }}>{body}</p>
           </div>
         ))}
       </div>
-    </motion.div>
+    </motion.article>
   )
 }
