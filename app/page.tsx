@@ -5,9 +5,8 @@ import dynamic from 'next/dynamic'
 import GrainOverlay from '@/components/GrainOverlay'
 import Nav from '@/components/Nav'
 
-// GlobeSection uses Framer Motion — split into its own chunk
+// GlobeSection — SSR enabled so LCP text is in initial HTML; JS only needed for scroll spin
 const GlobeSection = dynamic(() => import('@/components/GlobeSection'), {
-  ssr: false,
   loading: () => <div style={{ height: '100vh', background: '#0d0a08' }} />,
 })
 

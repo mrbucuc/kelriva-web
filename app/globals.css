@@ -194,6 +194,23 @@ a { text-decoration: none; color: inherit; }
   50%      { transform: translateY(-6px); }
 }
 
+/* Globe entrance — fade + scale in */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* SVG path draw (requires pathLength="1" on the element) */
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Fade in from above (eyebrows, top-anchored overlays) */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: none; }
+}
+
 /* Scroll progress bar fill */
 @keyframes progressPulse {
   0%, 100% { box-shadow: 0 0 8px rgba(214,53,69,0.5); }
