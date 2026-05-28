@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import { checkReducedMotion } from '@/lib/animations'
 
 interface NavProps {
   onBookCall: () => void
@@ -22,6 +23,7 @@ export default function Nav({ onBookCall }: NavProps) {
 
   // Nav entrance — slides down at 500ms per page load sequence
   useEffect(() => {
+    if (checkReducedMotion()) { setEntered(true); return }
     const t = setTimeout(() => setEntered(true), 500)
     return () => clearTimeout(t)
   }, [])
