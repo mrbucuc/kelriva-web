@@ -152,11 +152,14 @@ export default function GlobeSection() {
     ctxRef.current = ctx
     pathGenRef.current = geoPath(proj, ctx)
 
-    // Fetch world topology — globe works (just outline) if this fails
-    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')
+    // Serve from same origin — CDN blocked by CSP connect-src
+    fetch('/land-110m.json')
       .then(r => r.json())
-      .then((data: any) => { topoRef.current = data })
-      .catch(() => {})
+      .then((data: any) => {
+        topoRef.current = data
+        console.log('topo loaded:', !!topoRef.current, 'objects:', Object.keys(data.objects || {}))
+      })
+      .catch((err) => { console.error('topo fetch failed:', err) })
 
     // ── Globe rendering (canvas) ───────────────────────────────────────────────
     const renderGlobe = () => {
