@@ -1,6 +1,7 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { checkReducedMotion } from '@/lib/animations'
 
 const STEPS = [
   {
@@ -26,108 +27,202 @@ const STEPS = [
 ]
 
 export default function Process() {
+  const sectionRef  = useRef<HTMLDivElement>(null)
+  const threadRef   = useRef<HTMLDivElement>(null)
+  const [progress, setProgress]   = useState(0)
+  const [entered, setEntered]     = useState(false)
+  const [pinned, setPinned]       = useState(false)
+
+  const reduced = checkReducedMotion()
+
+  // Active step index from progress 0→1
+  const activeStep = reduced ? STEPS.length - 1 : Math.min(
+    STEPS.length - 1,
+    Math.floor(progress * STEPS.length),
+  )
+
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+    if (reduced) { setEntered(true); setProgress(1); return }
+
+    // Entry observer
+    const entryObs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setEntered(true) },
+      { threshold: 0.05 },
+    )
+    entryObs.observe(section)
+
+    // Scroll progress mapped to section height
+    const onScroll = () => {
+      const rect  = section.getBoundingClientRect()
+      const vh    = window.innerHeight
+      // Section is 300vh tall; track from when top hits viewport to when bottom leaves
+      const total = section.offsetHeight - vh
+      const entered = -rect.top
+      const p = Math.max(0, Math.min(1, total > 0 ? entered / total : 0))
+      setProgress(p)
+      setPinned(rect.top <= 0 && rect.bottom > vh)
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+
+    return () => {
+      entryObs.disconnect()
+      window.removeEventListener('scroll', onScroll)
+    }
+  }, [reduced])
+
+  // Thread height fills with progress
+  const threadFill = `${progress * 100}%`
+
   return (
-    <section id="process" style={{ padding: '8rem 3rem' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+    // Outer tall container — 300vh creates scroll room for sticky panel
+    <div
+      ref={sectionRef}
+      style={{ height: reduced ? 'auto' : '300vh', position: 'relative' }}
+    >
+      {/* Sticky panel */}
+      <div style={{
+        position: reduced ? 'relative' : (pinned ? 'fixed' : progress >= 1 ? 'absolute' : 'sticky'),
+        top: reduced ? 'auto' : (progress >= 1 ? 'auto' : 0),
+        bottom: reduced ? 'auto' : (progress >= 1 ? 0 : 'auto'),
+        left: 0, right: 0,
+        height: reduced ? 'auto' : '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        background: 'var(--color-ink-warm)',
+        overflow: 'hidden',
+      }}>
+        <section id="process" style={{ width: '100%', padding: '8rem 3rem' }}>
+          <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.65, ease: [0.23, 1, 0.32, 1] }}
-          style={{
-            fontFamily: 'var(--font-jetbrains), monospace',
-            fontSize: '.66rem', color: '#d63545',
-            letterSpacing: '.22em', textTransform: 'uppercase',
-            marginBottom: '.9rem', display: 'flex', alignItems: 'center', gap: '.6rem',
-          }}
-        >
-          <span style={{ opacity: .5 }}>//</span> How we work
-        </motion.div>
-
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.65, delay: 0.08, ease: [0.23, 1, 0.32, 1] }}
-          style={{
-            fontFamily: 'var(--font-cormorant), serif',
-            fontSize: 'clamp(2rem,4.5vw,3.6rem)',
-            fontWeight: 300, fontStyle: 'italic',
-            color: '#ffffff', lineHeight: 1.1,
-            letterSpacing: '-.02em', marginBottom: '4.5rem',
-          }}
-        >
-          From first call to live system<br />
-          <em>in weeks, not months.</em>
-        </motion.h2>
-
-        {/* Steps — editorial numbered rows */}
-        <div style={{ borderTop: '1px solid rgba(214,53,69,.08)' }}>
-          {STEPS.map((step, i) => (
-            <motion.div
-              key={step.n}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.6, delay: i * 0.1, ease: [0.23, 1, 0.32, 1] }}
+            {/* Header */}
+            <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: '72px 1fr 1fr',
-                gap: '0 3rem',
-                padding: '2.75rem 0',
-                borderBottom: '1px solid rgba(214,53,69,.08)',
-                alignItems: 'start',
+                opacity: entered ? 1 : 0,
+                transform: entered ? 'none' : 'translateY(24px)',
+                transition: `opacity 600ms var(--ease-out), transform 600ms var(--ease-out)`,
+                marginBottom: '5rem',
               }}
-              className="proc-row"
             >
-              {/* Step number */}
-              <div style={{
-                fontFamily: 'var(--font-jetbrains), monospace',
-                fontSize: '.68rem',
-                color: '#d63545',
-                letterSpacing: '.14em',
-                paddingTop: '.2rem',
-                opacity: .7,
-              }}>
-                {step.n}
+              <div className="t-mono" style={{ color: '#6b5548', marginBottom: '1.2rem' }}>
+                How we work
+              </div>
+              <h2 className="t-section" style={{ color: '#ffffff', margin: 0 }}>
+                From first call to live system<br />
+                <em>in weeks, not months.</em>
+              </h2>
+            </div>
+
+            {/* Timeline */}
+            <div style={{ display: 'flex', gap: '4rem' }} className="proc-layout">
+
+              {/* Left: red thread + step numbers */}
+              <div style={{ position: 'relative', width: 2, flexShrink: 0, alignSelf: 'stretch' }}
+                   className="proc-thread-col">
+                {/* Track background */}
+                <div style={{
+                  position: 'absolute', top: 0, bottom: 0, left: 0,
+                  width: 2,
+                  background: 'rgba(214,53,69,0.1)',
+                }} />
+                {/* Fill — maps to scroll progress */}
+                <div
+                  ref={threadRef}
+                  style={{
+                    position: 'absolute', top: 0, left: 0,
+                    width: 2,
+                    height: reduced ? '100%' : threadFill,
+                    background: '#d63545',
+                    boxShadow: '0 0 10px rgba(214,53,69,0.6)',
+                    transition: reduced ? 'none' : 'height 80ms linear',
+                  }}
+                />
               </div>
 
-              {/* Title */}
-              <div style={{
-                fontFamily: 'var(--font-cormorant), serif',
-                fontStyle: 'italic',
-                fontWeight: 300,
-                fontSize: 'clamp(1.3rem, 2vw, 1.75rem)',
-                color: '#ffffff',
-                lineHeight: 1.2,
-                letterSpacing: '-.01em',
-              }}>
-                {step.title}
+              {/* Right: steps */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+                {STEPS.map((step, i) => {
+                  const isActive = i <= activeStep
+                  const isCurrent = i === activeStep && !reduced
+
+                  return (
+                    <div
+                      key={step.n}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '5rem 1fr',
+                        gap: '0 2.5rem',
+                        alignItems: 'start',
+                        opacity: isActive ? 1 : 0.28,
+                        transform: isCurrent ? 'translateX(0)' : (entered && isActive ? 'none' : 'translateX(-20px)'),
+                        transition: `opacity 500ms var(--ease-out), transform 500ms var(--ease-out)`,
+                      }}
+                      className="proc-row"
+                    >
+                      {/* Large step number */}
+                      <div style={{
+                        fontFamily: 'var(--font-cormorant), serif',
+                        fontWeight: 300,
+                        fontSize: 'clamp(3rem, 4.5vw, 4.5rem)',
+                        lineHeight: 1,
+                        color: isActive ? '#d63545' : 'rgba(214,53,69,0.25)',
+                        letterSpacing: '-.02em',
+                        transition: 'color 400ms var(--ease-out)',
+                        paddingTop: '.1rem',
+                      }}>
+                        {step.n}
+                      </div>
+
+                      {/* Content */}
+                      <div>
+                        {/* Active indicator */}
+                        {isCurrent && (
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: '.4rem',
+                            marginBottom: '.4rem',
+                          }}>
+                            <span style={{
+                              width: 5, height: 5, borderRadius: '50%',
+                              background: '#00e09c',
+                              animation: 'statusBlink 2s ease infinite',
+                              display: 'inline-block',
+                            }} />
+                            <span className="t-mono" style={{ color: '#00e09c', fontSize: '.58rem' }}>
+                              Current
+                            </span>
+                          </div>
+                        )}
+                        <h3 style={{
+                          fontFamily: 'var(--font-instrument), sans-serif',
+                          fontWeight: 600,
+                          fontSize: 'clamp(1.1rem, 1.8vw, 1.5rem)',
+                          color: isActive ? '#ffffff' : '#6b5548',
+                          letterSpacing: '-.01em',
+                          marginBottom: '.6rem',
+                          transition: 'color 400ms var(--ease-out)',
+                        }}>
+                          {step.title}
+                        </h3>
+                        <p className="t-body" style={{
+                          color: isActive ? '#9a7a6a' : '#6b5548',
+                          margin: 0,
+                          transition: 'color 400ms var(--ease-out)',
+                        }}>
+                          {step.desc}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
+            </div>
 
-              {/* Description */}
-              <p style={{
-                fontSize: '.88rem',
-                color: '#9a7a6a',
-                lineHeight: 1.85,
-              }}>
-                {step.desc}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-
+          </div>
+        </section>
       </div>
-
-      <style>{`
-        @media (max-width: 900px) {
-          section#process { padding: 5rem 1.5rem !important; }
-          .proc-row { grid-template-columns: 48px 1fr !important; gap: 0 1.5rem !important; }
-          .proc-row > :last-child { grid-column: 1 / -1 !important; margin-top: 1rem !important; }
-        }
-      `}</style>
-    </section>
+    </div>
   )
 }
