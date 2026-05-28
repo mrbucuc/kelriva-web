@@ -11,10 +11,10 @@ export default function PageLoader() {
   useEffect(() => {
     if (checkReducedMotion()) { setPhase(4); return }
 
-    const t1 = setTimeout(() => setPhase(1), 100)
-    const t2 = setTimeout(() => setPhase(2), 300)
-    const t3 = setTimeout(() => setPhase(3), 580)
-    const t4 = setTimeout(() => setPhase(4), 980)
+    const t1 = setTimeout(() => setPhase(1), 50)
+    const t2 = setTimeout(() => setPhase(2), 150)
+    const t3 = setTimeout(() => setPhase(3), 300)
+    const t4 = setTimeout(() => setPhase(4), 500)
 
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4) }
   }, [])

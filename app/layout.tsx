@@ -1,19 +1,15 @@
 import type { Metadata } from 'next'
-import { Bricolage_Grotesque, Cormorant_Garamond, JetBrains_Mono, Instrument_Sans } from 'next/font/google'
+import { Cormorant_Garamond, JetBrains_Mono, Instrument_Sans } from 'next/font/google'
 import Script from 'next/script'
+import dynamic from 'next/dynamic'
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import ParticleBackground from '@/components/ParticleBackground'
-import CustomCursor from '@/components/ui/CustomCursor'
-import ScrollProgress from '@/components/ui/ScrollProgress'
-import PageLoader from '@/components/ui/PageLoader'
 import './globals.css'
 
-const bricolage = Bricolage_Grotesque({
-  subsets: ['latin'],
-  variable: '--font-bricolage',
-  display: 'swap',
-  weight: ['200', '400', '600', '700', '800'],
-})
+// Global chrome — deferred to avoid blocking LCP
+const ParticleBackground = dynamic(() => import('@/components/ParticleBackground'), { ssr: false })
+const PageLoader         = dynamic(() => import('@/components/ui/PageLoader'),       { ssr: false })
+const CustomCursor       = dynamic(() => import('@/components/ui/CustomCursor'),     { ssr: false })
+const ScrollProgress     = dynamic(() => import('@/components/ui/ScrollProgress'),   { ssr: false })
 
 const instrument = Instrument_Sans({
   subsets: ['latin'],
@@ -22,19 +18,21 @@ const instrument = Instrument_Sans({
   weight: ['400', '500', '600', '700'],
 })
 
+// Only weight 300 is used in headings; italic is required for .t-section
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
   variable: '--font-cormorant',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['300', '400'],
   style: ['normal', 'italic'],
 })
 
+// Only weight 400 is used for mono labels
 const jetbrains = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-jetbrains',
   display: 'swap',
-  weight: ['400', '500', '600', '700'],
+  weight: ['400'],
 })
 
 export const metadata: Metadata = {
@@ -149,7 +147,7 @@ export default function RootLayout({
   return (
     <html
       lang="en-GB"
-      className={`${bricolage.variable} ${cormorant.variable} ${jetbrains.variable} ${instrument.variable}`}
+      className={`${cormorant.variable} ${jetbrains.variable} ${instrument.variable}`}
     >
       <head>
         <Script
