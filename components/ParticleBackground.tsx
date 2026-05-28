@@ -45,8 +45,8 @@ export default function ParticleBackground() {
     })
 
     const nodes: Node[] = [
-      ...Array.from({ length: 130 }, () => makeNode(false)),
-      ...Array.from({ length: 18  }, () => makeNode(true)),
+      ...Array.from({ length: 65 }, () => makeNode(false)),
+      ...Array.from({ length: 15 }, () => makeNode(true)),
     ]
 
     let mX = -999, mY = -999
@@ -181,6 +181,15 @@ export default function ParticleBackground() {
     }
     raf = requestAnimationFrame(draw)
 
+    const onVisible = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(raf)
+      } else {
+        raf = requestAnimationFrame(draw)
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
     return () => {
       window.removeEventListener('resize',     resize)
       window.removeEventListener('mousemove',  onMouse)
@@ -188,6 +197,7 @@ export default function ParticleBackground() {
       window.removeEventListener('scroll',     onScroll)
       window.removeEventListener('touchmove',  onTouch)
       window.removeEventListener('touchend',   onTouchEnd)
+      document.removeEventListener('visibilitychange', onVisible)
       cancelAnimationFrame(raf)
     }
   }, [])
@@ -195,6 +205,7 @@ export default function ParticleBackground() {
   return (
     <canvas
       ref={canvasRef}
+      aria-hidden="true"
       style={{
         position:      'fixed',
         inset:         0,

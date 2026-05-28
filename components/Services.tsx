@@ -74,7 +74,7 @@ export default function Services() {
           }} />
 
           <div ref={headingRef}>
-            <div className="t-mono" style={{ color: '#6b5548', marginBottom: '1.2rem' }}>
+            <div className="t-mono" style={{ color: '#9a7a6a', marginBottom: '1.2rem' }}>
               What we build
             </div>
 
@@ -203,7 +203,7 @@ function ServiceRow({
           </h3>
           <div style={{ display: 'flex', gap: '1.2rem', flexWrap: 'wrap' }}>
             {verticals.map(v => (
-              <span key={v} className="t-mono" style={{ color: '#6b5548', fontSize: '.65rem' }}>
+              <span key={v} className="t-mono" style={{ color: '#9a7a6a', fontSize: '.65rem' }}>
                 {v}
               </span>
             ))}

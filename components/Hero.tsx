@@ -171,7 +171,7 @@ export default function Hero({ onBookCall }: HeroProps) {
             fontFamily: 'var(--font-instrument), sans-serif',
             fontWeight: 400,
             fontSize: '1.15rem',
-            color: '#6b5548',
+            color: '#9a7a6a',
             lineHeight: 1.6,
             maxWidth: 460,
             margin: '0 0 2.8rem',

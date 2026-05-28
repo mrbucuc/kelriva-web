@@ -107,7 +107,7 @@ export default function Process() {
                 marginBottom: '5rem',
               }}
             >
-              <div className="t-mono" style={{ color: '#6b5548', marginBottom: '1.2rem' }}>
+              <div className="t-mono" style={{ color: '#9a7a6a', marginBottom: '1.2rem' }}>
                 How we work
               </div>
               <h2 className="t-section" style={{ color: '#ffffff', margin: 0 }}>
@@ -199,7 +199,7 @@ export default function Process() {
                           fontFamily: 'var(--font-instrument), sans-serif',
                           fontWeight: 600,
                           fontSize: 'clamp(1.1rem, 1.8vw, 1.5rem)',
-                          color: isActive ? '#ffffff' : '#6b5548',
+                          color: isActive ? '#ffffff' : '#9a7a6a',
                           letterSpacing: '-.01em',
                           marginBottom: '.6rem',
                           transition: 'color 400ms var(--ease-out)',
@@ -207,7 +207,7 @@ export default function Process() {
                           {step.title}
                         </h3>
                         <p className="t-body" style={{
-                          color: isActive ? '#9a7a6a' : '#6b5548',
+                          color: isActive ? '#ede5dc' : '#9a7a6a',
                           margin: 0,
                           transition: 'color 400ms var(--ease-out)',
                         }}>

@@ -77,7 +77,7 @@ export default function CaseStudies() {
           transition={{ duration: 0.65, ease: [0.23, 1, 0.32, 1] }}
           style={{ marginBottom: '5.5rem' }}
         >
-          <div className="t-mono" style={{ color: '#6b5548', marginBottom: '1.2rem' }}>
+          <div className="t-mono" style={{ color: '#9a7a6a', marginBottom: '1.2rem' }}>
             Proof of work
           </div>
           <h2 className="t-section" style={{ color: '#ffffff', margin: 0 }}>
@@ -227,7 +227,7 @@ function CaseSpread({
             <div className="t-mono" style={{ color, fontSize: '.65rem', marginBottom: '.9rem', opacity: .8 }}>
               {label}
             </div>
-            <p className="t-body" style={{ color: 'rgba(154,122,106,0.75)', margin: 0 }}>
+            <p className="t-body" style={{ color: '#ede5dc', margin: 0 }}>
               {body}
             </p>
           </div>
@@ -285,7 +285,7 @@ function MetricBlock({ display, label, isText, from = 0, to = 0, suffix = '', co
       >
         {value}
       </div>
-      <div className="t-mono" style={{ color: '#6b5548', fontSize: '.6rem' }}>
+      <div className="t-mono" style={{ color: '#9a7a6a', fontSize: '.6rem' }}>
         {label}
       </div>
     </div>
