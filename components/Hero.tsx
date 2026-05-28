@@ -1,12 +1,55 @@
 'use client'
 
 import Image from 'next/image'
+import { checkReducedMotion } from '@/lib/animations'
 
 interface HeroProps {
   onBookCall: () => void
 }
 
+// Headline split into words for stagger sequence
+const HEADLINE_LINES = [
+  { words: ['From', 'Data', 'to'], color: '#ede5dc' },
+  { words: ['Decisions,'],         color: '#ede5dc' },
+  { words: ['Instantly.'],         color: '#d63545' },
+]
+
+// 70ms stagger per word, starting at 900ms after mount
+const WORD_BASE_DELAY = 900
+const WORD_STAGGER    = 70
+
+let wordIndex = 0
+const wordDelay = (lineI: number, wordI: number) => {
+  void lineI
+  void wordI
+  return WORD_BASE_DELAY + wordIndex++ * WORD_STAGGER
+}
+
+// Reset counter each render (module-level counter resets on re-import in dev)
 export default function Hero({ onBookCall }: HeroProps) {
+  wordIndex = 0
+
+  const reduced = checkReducedMotion()
+
+  // Pre-compute all delays so JSX stays clean
+  const delays: number[][][] = HEADLINE_LINES.map(line =>
+    line.words.map((_, wi) => {
+      const d = wordDelay(0, wi)
+      return [d]
+    }),
+  )
+  // Reset so delays are consistent
+  wordIndex = 0
+
+  const allDelays: number[] = []
+  HEADLINE_LINES.forEach(line => {
+    line.words.forEach(() => {
+      allDelays.push(reduced ? 0 : WORD_BASE_DELAY + allDelays.length * WORD_STAGGER)
+    })
+  })
+
+  let wi = 0
+
   return (
     <section
       id="hero"
@@ -18,6 +61,7 @@ export default function Hero({ onBookCall }: HeroProps) {
         flexDirection: 'column',
         justifyContent: 'center',
         padding: '0 3rem',
+        background: 'var(--color-ink)',
       }}
     >
       {/* Gradient overlays */}
@@ -29,48 +73,41 @@ export default function Hero({ onBookCall }: HeroProps) {
         `,
       }} />
 
-      {/* Cinematic bars */}
+      {/* Cinematic letterbox bars */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 66, background: '#0d0a08', zIndex: 2 }} />
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 58, background: '#0d0a08', zIndex: 2 }} />
 
-      {/* Left vertical rule — graphic spine */}
+      {/* Left vertical rule */}
       <div style={{
         position: 'absolute',
-        left: '3rem',
-        top: 66,
-        bottom: 58,
+        left: '3rem', top: 66, bottom: 58,
         width: 1,
         background: 'linear-gradient(to bottom, transparent 0%, rgba(214,53,69,.22) 20%, rgba(214,53,69,.22) 80%, transparent 100%)',
         zIndex: 3,
       }} />
 
-      {/* Coordinate labels along vertical rule */}
-      <div style={{
-        position: 'absolute',
-        left: 'calc(3rem + 16px)',
-        top: 100,
-        zIndex: 3,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 0,
-        opacity: 0,
-        animation: 'fadeIn 1s ease 1.8s forwards',
-      }} className="hero-coords">
+      {/* Coordinate labels */}
+      <div
+        className="hero-coords"
+        style={{
+          position: 'absolute',
+          left: 'calc(3rem + 16px)',
+          top: 100,
+          zIndex: 3,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0,
+          opacity: 0,
+          animation: `fadeIn 1s ease ${reduced ? '0ms' : '1.8s'} forwards`,
+        }}
+      >
         {[
-          { label: '51.5117° N', sub: 'latitude' },
-          { label: '0.1240° W', sub: 'longitude' },
+          { label: '51.5117° N', sub: 'latitude'  },
+          { label: '0.1240° W',  sub: 'longitude' },
         ].map(({ label, sub }) => (
           <div key={sub} style={{ marginBottom: '1.2rem' }}>
-            <div style={{
-              fontFamily: 'var(--font-jetbrains), monospace',
-              fontSize: '.55rem', color: 'rgba(214,53,69,.55)',
-              letterSpacing: '.14em', textTransform: 'uppercase',
-            }}>{label}</div>
-            <div style={{
-              fontFamily: 'var(--font-jetbrains), monospace',
-              fontSize: '.48rem', color: 'rgba(107,85,72,.4)',
-              letterSpacing: '.18em', textTransform: 'uppercase',
-            }}>{sub}</div>
+            <div className="t-mono" style={{ color: 'rgba(214,53,69,.55)', fontSize: '.55rem' }}>{label}</div>
+            <div className="t-mono" style={{ color: 'rgba(107,85,72,.4)',  fontSize: '.48rem' }}>{sub}</div>
           </div>
         ))}
       </div>
@@ -81,100 +118,81 @@ export default function Hero({ onBookCall }: HeroProps) {
         transform: 'translateY(-50%)',
         zIndex: 2, opacity: .032, pointerEvents: 'none',
       }}>
-        <Image src="/lockup-white.png" alt="Kelriva AI" aria-hidden width={360} height={220} style={{ width: 360, height: 'auto' }} />
+        <Image src="/lockup-white.png" alt="" aria-hidden width={360} height={220} style={{ width: 360, height: 'auto' }} />
       </div>
 
-      {/* Content — offset right of the vertical rule */}
-      <div style={{ position: 'relative', zIndex: 3, maxWidth: 800, paddingLeft: 'clamp(0px, 4vw, 56px)' }}>
+      {/* ── Main content ──────────────────────────────────────────────────── */}
+      <div style={{ position: 'relative', zIndex: 3, maxWidth: 860, paddingLeft: 'clamp(0px, 4vw, 56px)' }}>
 
-        {/* Eyebrow */}
-        <div style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: '.65rem',
-          color: '#d63545',
-          letterSpacing: '.22em',
-          textTransform: 'uppercase',
-          marginBottom: '2rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '.75rem',
-          opacity: 0,
-          animation: 'fadeUp 1s ease .35s forwards',
-        }}>
-          <span style={{ display: 'block', width: 32, height: 1, background: 'linear-gradient(90deg,transparent,#d63545)' }} />
-          Enterprise AI · London
-          <span style={{ opacity: .35 }}>·</span>
-          Est. 2026
-          <span style={{ animation: 'blink 1.2s step-end infinite', opacity: .7 }}>_</span>
-        </div>
-
-        {/* H1 — editorial weight contrast */}
-        <h1 style={{
-          margin: 0,
-          opacity: 0,
-          animation: 'fadeUp 1.1s ease .55s forwards',
-        }}>
-          <span style={{
-            display: 'block',
-            fontFamily: 'var(--font-cormorant), serif',
-            fontStyle: 'italic',
-            fontWeight: 300,
-            fontSize: 'clamp(3.2rem, 6.5vw, 6rem)',
-            color: '#ffffff',
-            lineHeight: .97,
-            letterSpacing: '-.02em',
-          }}>From data</span>
-          <span style={{
-            display: 'block',
-            fontFamily: 'var(--font-cormorant), serif',
-            fontStyle: 'italic',
-            fontWeight: 300,
-            fontSize: 'clamp(3.2rem, 6.5vw, 6rem)',
-            color: '#ffffff',
-            lineHeight: .97,
-            letterSpacing: '-.02em',
-            marginBottom: '.2rem',
-          }}>to decision.</span>
+        {/* Headline — word-by-word stagger */}
+        <h1 style={{ margin: '0 0 1.6rem' }} aria-label="From Data to Decisions, Instantly.">
+          {HEADLINE_LINES.map((line, li) => (
+            <div key={li} style={{ display: 'block', lineHeight: .97 }}>
+              {line.words.map((word) => {
+                const delay = reduced ? 0 : WORD_BASE_DELAY + wi++ * WORD_STAGGER
+                return (
+                  <span
+                    key={word + li}
+                    style={{
+                      display: 'inline-block',
+                      marginRight: '.28em',
+                      fontFamily: 'var(--font-instrument), sans-serif',
+                      fontWeight: 700,
+                      fontSize: 'clamp(3.5rem, 8vw, 8.5rem)',
+                      color: line.color,
+                      letterSpacing: '-.03em',
+                      opacity: 0,
+                      animation: `fadeUp 0.7s var(--ease-out) ${delay}ms forwards`,
+                    }}
+                  >
+                    {word}
+                  </span>
+                )
+              })}
+            </div>
+          ))}
         </h1>
+        {/* Reset counter for next call */}
+        {(wi = 0) as unknown as null}
 
-        {/* Contrast word — outline treatment */}
-        <span style={{
-          display: 'block',
-          fontFamily: 'var(--font-instrument), sans-serif',
-          fontStyle: 'normal',
-          fontWeight: 800,
-          fontSize: 'clamp(2.8rem, 5.8vw, 5.4rem)',
-          letterSpacing: '-.04em',
-          color: 'transparent',
-          WebkitTextStroke: '1px rgba(214,53,69,.5)',
+        {/* Red horizontal rule — draws after headline */}
+        <div style={{
+          width: 40, height: 2,
+          background: '#d63545',
+          marginBottom: '1.6rem',
+          transformOrigin: 'left',
           opacity: 0,
-          animation: 'fadeUp 1.1s ease .72s forwards',
-          marginBottom: '1.75rem',
-        }}>
-          Instantly.
-        </span>
+          animation: `fadeIn 0.4s var(--ease-out) ${reduced ? '0ms' : '1500ms'} forwards`,
+        }} />
 
-        <p style={{
-          fontSize: '1rem',
-          color: 'rgba(237,229,220,.65)',
-          maxWidth: 460,
-          lineHeight: 1.85,
-          marginBottom: '3rem',
-          opacity: 0,
-          animation: 'fadeUp 1s ease .92s forwards',
-        }}>
-          We build <strong style={{ color: '#ede5dc', fontWeight: 500 }}>bespoke AI systems</strong> that process
-          documents, automate workflows, and surface intelligence —{' '}
-          <strong style={{ color: '#ede5dc', fontWeight: 500 }}>fixed-fee, delivered in weeks.</strong>
+        {/* Sub-headline */}
+        <p
+          style={{
+            fontFamily: 'var(--font-instrument), sans-serif',
+            fontWeight: 400,
+            fontSize: '1.15rem',
+            color: '#6b5548',
+            lineHeight: 1.6,
+            maxWidth: 460,
+            margin: '0 0 2.8rem',
+            opacity: 0,
+            animation: `fadeUp 0.7s var(--ease-out) ${reduced ? '0ms' : '1600ms'} forwards`,
+          }}
+        >
+          AI Consultancy that builds, not just advises.
         </p>
 
         {/* CTAs */}
-        <div style={{
-          display: 'flex', gap: '1rem', flexWrap: 'wrap',
-          opacity: 0, animation: 'fadeUp 1s ease 1.1s forwards',
-        }}>
+        <div
+          style={{
+            display: 'flex', gap: '1rem', flexWrap: 'wrap',
+            opacity: 0,
+            animation: `fadeUp 0.7s var(--ease-out) ${reduced ? '0ms' : '1750ms'} forwards`,
+          }}
+        >
           <button
             onClick={onBookCall}
+            data-cursor="cta"
             style={{
               background: '#d63545', color: '#0d0a08',
               fontFamily: 'var(--font-instrument), sans-serif',
@@ -182,7 +200,7 @@ export default function Hero({ onBookCall }: HeroProps) {
               letterSpacing: '.12em', textTransform: 'uppercase',
               padding: '1rem 2.4rem', border: 'none',
               cursor: 'pointer',
-              transition: 'transform .16s cubic-bezier(0.23,1,0.32,1), background .16s',
+              transition: 'transform .16s var(--ease-out), background .16s',
             }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.background = '#e8404f' }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.background = '#d63545' }}
@@ -194,6 +212,7 @@ export default function Hero({ onBookCall }: HeroProps) {
 
           <button
             onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
+            data-cursor="link"
             style={{
               background: 'transparent', color: '#9a7a6a',
               fontFamily: 'var(--font-instrument), sans-serif',
@@ -204,14 +223,8 @@ export default function Hero({ onBookCall }: HeroProps) {
               cursor: 'pointer',
               transition: 'border-color .2s, color .2s',
             }}
-            onMouseEnter={e => {
-              e.currentTarget.style.borderColor = 'rgba(214,53,69,.4)'
-              e.currentTarget.style.color = '#d63545'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = 'rgba(154,122,106,.18)'
-              e.currentTarget.style.color = '#9a7a6a'
-            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(214,53,69,.4)'; e.currentTarget.style.color = '#d63545' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(154,122,106,.18)'; e.currentTarget.style.color = '#9a7a6a' }}
           >
             See what we build →
           </button>
@@ -222,37 +235,37 @@ export default function Hero({ onBookCall }: HeroProps) {
       <div style={{
         position: 'absolute', bottom: 76, left: '3rem', zIndex: 3,
         display: 'flex', alignItems: 'center', gap: '.75rem',
-        opacity: 0, animation: 'fadeIn 1s ease 2.2s forwards',
+        opacity: 0, animation: `fadeIn 1s ease ${reduced ? '0ms' : '2200ms'} forwards`,
       }}>
         <div style={{
           width: 36, height: 1,
           background: 'linear-gradient(90deg,#d63545,transparent)',
           animation: 'scrollLine 2.4s ease infinite',
         }} />
-        <span style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: '.58rem', color: 'rgba(107,85,72,.55)',
-          letterSpacing: '.22em', textTransform: 'uppercase',
-        }}>Scroll</span>
+        <span className="t-mono" style={{ color: 'rgba(107,85,72,.55)', fontSize: '.58rem' }}>
+          Scroll
+        </span>
       </div>
 
-      {/* Bottom-right — edition label */}
-      <div style={{
-        position: 'absolute', bottom: 76, right: '3rem', zIndex: 3,
-        fontFamily: 'var(--font-jetbrains), monospace',
-        fontSize: '.54rem', color: 'rgba(107,85,72,.35)',
-        letterSpacing: '.18em', textTransform: 'uppercase',
-        opacity: 0, animation: 'fadeIn 1s ease 2.2s forwards',
-        textAlign: 'right',
-      }} className="hero-edition">
-        kelriva.ai<br />
-        <span style={{ opacity: .6 }}>WC2H 9JQ · England</span>
+      {/* Edition label */}
+      <div
+        className="hero-edition"
+        style={{
+          position: 'absolute', bottom: 76, right: '3rem', zIndex: 3,
+          opacity: 0, animation: `fadeIn 1s ease ${reduced ? '0ms' : '2200ms'} forwards`,
+          textAlign: 'right',
+        }}
+      >
+        <div className="t-mono" style={{ color: 'rgba(107,85,72,.35)', fontSize: '.54rem' }}>
+          kelriva.ai<br />
+          <span style={{ opacity: .6 }}>WC2H 9JQ · England</span>
+        </div>
       </div>
 
       <style>{`
         @media (max-width: 900px) {
           section#hero { padding: 0 1.5rem !important; }
-          .hero-coords { display: none !important; }
+          .hero-coords  { display: none !important; }
           .hero-edition { display: none !important; }
         }
       `}</style>
