@@ -4,9 +4,13 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import GrainOverlay from '@/components/GrainOverlay'
 import Nav from '@/components/Nav'
+// Statically imported — server-rendered into initial HTML so LCP text is visible
+// as soon as CSS parses, before any JS runs
+import GlobeValueProp from '@/components/GlobeValueProp'
 
-// GlobeSection — SSR enabled so LCP text is in initial HTML; JS only needed for scroll spin
+// GlobeSection SVG: ssr:false keeps initial HTML small; value prop is handled by GlobeValueProp above
 const GlobeSection = dynamic(() => import('@/components/GlobeSection'), {
+  ssr: false,
   loading: () => <div style={{ height: '100vh', background: '#0d0a08' }} />,
 })
 
@@ -47,7 +51,12 @@ export default function Page() {
     <>
       <GrainOverlay />
       <Nav onBookCall={openChat} />
-      <GlobeSection />
+      {/* GlobeValueProp is statically imported (SSR'd) — becomes visible at CSS-parse time.
+          GlobeSection is ssr:false so the SVG doesn't bloat the initial HTML payload. */}
+      <div style={{ position: 'relative', height: '100vh' }}>
+        <GlobeSection />
+        <GlobeValueProp />
+      </div>
       <Hero onBookCall={openChat} />
       <QuoteStrip />
       <Services />
