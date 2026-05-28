@@ -90,7 +90,7 @@ export default function CtaSection({ onBookCall }: CtaSectionProps) {
           {/* Left — corner fly-in elements */}
           <div>
             {/* Headline — TL corner origin */}
-            <motion.h2
+            <motion.p
               initial={{ opacity: 0, x: CORNERS[0].x, y: CORNERS[0].y }}
               animate={entered ? { opacity: 1, x: 0, y: 0 } : {}}
               transition={{ duration: 0.8, delay: 0, ease: [0.23, 1, 0.32, 1] }}
@@ -105,7 +105,7 @@ export default function CtaSection({ onBookCall }: CtaSectionProps) {
               }}
             >
               Ready to decide faster?
-            </motion.h2>
+            </motion.p>
 
             {/* Sub-copy — TR corner origin */}
             <motion.p

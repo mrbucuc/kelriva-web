@@ -201,14 +201,14 @@ export default function CapabilitiesSection() {
                   </div>
 
                   {/* Title */}
-                  <h3 style={{
+                  <p style={{
                     fontFamily: 'var(--font-instrument), sans-serif',
                     fontWeight: 600, fontSize: '1.6rem',
                     color: '#ede5dc', letterSpacing: '-.01em',
                     marginBottom: '1rem',
                   }}>
                     {card.title}
-                  </h3>
+                  </p>
 
                   {/* Description */}
                   <p style={{
