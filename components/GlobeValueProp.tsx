@@ -31,11 +31,10 @@ export default function GlobeValueProp() {
         pointerEvents: 'none',
       }}
     >
-      {/* Inner: entry fadeUp + float loop (separate element so transforms don't conflict) */}
+      {/* Inner: float loop only — no opacity animation so text is LCP-visible at CSS-parse time */}
       <div
         style={{
-          opacity: 0,
-          animation: 'fadeUp 0.8s cubic-bezier(0.23,1,0.32,1) 0.1s both, float 6s ease-in-out 1.5s infinite',
+          animation: 'float 6s ease-in-out 0.5s infinite',
         }}
       >
         <div style={{

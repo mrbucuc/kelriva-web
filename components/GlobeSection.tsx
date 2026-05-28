@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const CX = 300
 const CY = 300
@@ -29,11 +29,15 @@ const RINGS   = [0.22, 0.40, 0.57, 0.73, 0.88]
 const RADIALS = Array.from({ length: 12 }, (_, i) => i * 30)
 
 export default function GlobeSection() {
+  const [mounted, setMounted] = useState(false)
   const sectionRef  = useRef<HTMLElement>(null)
   const svgRef      = useRef<SVGSVGElement>(null)
   const overlayRef  = useRef<HTMLDivElement>(null)
   const lastScrollY = useRef(0)
   const rotDeg      = useRef(0)
+
+  // Mounted guard: prevents SVG from being SSR'd (keeps initial HTML small for fast FCP)
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     const section = sectionRef.current
@@ -61,6 +65,8 @@ export default function GlobeSection() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  if (!mounted) return null
 
   return (
     <section

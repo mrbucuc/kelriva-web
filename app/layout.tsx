@@ -1,15 +1,9 @@
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, JetBrains_Mono, Instrument_Sans } from 'next/font/google'
 import Script from 'next/script'
-import dynamic from 'next/dynamic'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import GlobalChrome from '@/components/GlobalChrome'
 import './globals.css'
-
-// Global chrome — deferred to avoid blocking LCP
-const ParticleBackground = dynamic(() => import('@/components/ParticleBackground'), { ssr: false })
-const PageLoader         = dynamic(() => import('@/components/ui/PageLoader'),       { ssr: false })
-const CustomCursor       = dynamic(() => import('@/components/ui/CustomCursor'),     { ssr: false })
-const ScrollProgress     = dynamic(() => import('@/components/ui/ScrollProgress'),   { ssr: false })
 
 const instrument = Instrument_Sans({
   subsets: ['latin'],
@@ -182,14 +176,8 @@ export default function RootLayout({
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
-        {/* Global particle canvas — sits behind all page content */}
-        <ParticleBackground />
-        {/* Page load sequence — black → grain → K mark → fade out */}
-        <PageLoader />
-        {/* Custom cursor — pointer devices only, reduced-motion aware */}
-        <CustomCursor />
-        {/* Scroll progress bar — 2px red top strip */}
-        <ScrollProgress />
+        {/* Global chrome: particle bg, page loader, cursor, scroll progress — all ssr:false */}
+        <GlobalChrome />
         {/* All page content sits above the canvas */}
         <div style={{ position: 'relative', zIndex: 1 }}>
           {children}
