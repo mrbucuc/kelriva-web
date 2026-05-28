@@ -202,6 +202,8 @@ export default function ParticleBackground() {
         height:        '100%',
         zIndex:        0,
         pointerEvents: 'none',
+        opacity:       0,
+        animation:     'fadeIn 600ms ease 700ms forwards',
       }}
     />
   )

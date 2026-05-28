@@ -18,6 +18,13 @@ export default function Nav({ onBookCall }: NavProps) {
   const [scrolled,   setScrolled]   = useState(false)
   const [menuOpen,   setMenuOpen]   = useState(false)
   const [activeId,   setActiveId]   = useState<string | null>(null)
+  const [entered,    setEntered]    = useState(false)
+
+  // Nav entrance — slides down at 500ms per page load sequence
+  useEffect(() => {
+    const t = setTimeout(() => setEntered(true), 500)
+    return () => clearTimeout(t)
+  }, [])
 
   // Scroll threshold: 80px → backdrop-blur kicks in
   useEffect(() => {
@@ -64,7 +71,9 @@ export default function Nav({ onBookCall }: NavProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          transition: 'background 300ms var(--ease-out), border-color 300ms var(--ease-out), height 300ms var(--ease-out)',
+          transition: 'background 300ms var(--ease-out), border-color 300ms var(--ease-out), height 300ms var(--ease-out), opacity 400ms var(--ease-out), transform 400ms var(--ease-out)',
+          opacity: entered ? 1 : 0,
+          transform: entered ? 'none' : 'translateY(-12px)',
           background: scrolled || menuOpen ? 'rgba(13,10,8,0.92)' : 'transparent',
           backdropFilter: scrolled || menuOpen ? 'blur(16px)' : 'none',
           WebkitBackdropFilter: scrolled || menuOpen ? 'blur(16px)' : 'none',
