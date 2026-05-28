@@ -34,9 +34,14 @@ export const metadata: Metadata = {
   title: 'Kelriva AI — Enterprise AI Consultancy | London',
   description: 'London-based enterprise AI consultancy. AI systems for IDP, Workflow Automation & Data Analytics. Fixed-fee, delivered in weeks.',
   icons: {
-    icon: '/mark-kelriva.png',
-    apple: '/mark-kelriva.png',
+    icon: [
+      { url: '/favicon-kelriva.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon-kelriva.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: { url: '/favicon-kelriva.png', sizes: '512x512', type: 'image/png' },
+    shortcut: '/favicon-kelriva.png',
   },
+  authors: [{ name: 'Kelriva AI', url: 'https://kelriva.ai/' }],
   keywords: [
     'AI consultancy',
     'intelligent document processing',
@@ -122,6 +127,22 @@ const jsonLd = {
     'https://www.linkedin.com/company/kelriva-ai',
   ],
   foundingDate: '2026',
+  author: {
+    '@type': 'Organization',
+    name: 'Kelriva AI',
+    url: 'https://kelriva.ai/',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Kelriva AI',
+    url: 'https://kelriva.ai/',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://kelriva.ai/lockup-white.png',
+      width: 600,
+      height: 60,
+    },
+  },
   hasOfferCatalog: {
     '@type': 'OfferCatalog',
     name: 'Enterprise AI Services',
