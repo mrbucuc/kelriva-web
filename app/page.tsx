@@ -7,12 +7,9 @@ import Nav from '@/components/Nav'
 // Statically imported — server-rendered into initial HTML so LCP text is visible
 // as soon as CSS parses, before any JS runs
 import GlobeValueProp from '@/components/GlobeValueProp'
-
-// GlobeSection SVG: ssr:false keeps initial HTML small; value prop is handled by GlobeValueProp above
-const GlobeSection = dynamic(() => import('@/components/GlobeSection'), {
-  ssr: false,
-  loading: () => <div style={{ height: '100vh', background: '#0d0a08' }} />,
-})
+// GlobeSection: static import so SVG is SSR'd and visible at first paint (LCP = FCP)
+// Globe wrapper uses globeIn (scale-only, no opacity) so it's the LCP element at CSS-parse time
+import GlobeSection from '@/components/GlobeSection'
 
 const dark100vh = { height: '100vh',  background: '#0d0a08' } as const
 const dark300vh = { height: '300vh',  background: '#100d0b' } as const

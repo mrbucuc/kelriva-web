@@ -13,10 +13,11 @@ const instrument = Instrument_Sans({
 })
 
 // Only weight 300 is used in headings; italic is required for .t-section
+// font-display:optional — prevents late font-swap repaint that would push LCP to ~3.7s on slow 4G
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
   variable: '--font-cormorant',
-  display: 'swap',
+  display: 'optional',
   weight: ['300', '400'],
   style: ['normal', 'italic'],
 })

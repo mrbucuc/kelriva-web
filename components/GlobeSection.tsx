@@ -88,12 +88,13 @@ export default function GlobeSection() {
         <svg
           ref={svgRef}
           viewBox="0 0 600 600"
+          role="img"
+          aria-label="Globe showing Kelriva AI's global reach from London to major financial hubs"
           style={{
             width: '100%', height: '100%',
             willChange: 'transform',
             transformOrigin: 'center center',
           }}
-          aria-hidden
         >
           <defs>
             <radialGradient id="londonGlow" cx="50%" cy="50%" r="50%">
