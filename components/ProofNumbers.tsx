@@ -1,100 +1,167 @@
 'use client'
 
-// Duplicated so the seamless loop works — CSS handles the animation
+import { useEffect, useRef, useState } from 'react'
+import { checkReducedMotion } from '@/lib/animations'
+
 const ITEMS = [
-  { value: '2',      label: 'AI Systems in Production' },
-  { value: '48h',    label: 'Proposal Turnaround'       },
-  { value: '100%',   label: 'Fixed-Fee Delivery'        },
-  { value: '£1.17B', label: 'UK Gov AI Spend · 2025'   },
+  'Fixed-Fee Delivery',
+  '48h Proposal Turnaround',
+  'London, United Kingdom',
+  'Est. 2026',
+  'Enterprise-Grade Builds',
+  'AWS-Powered Infrastructure',
+  'UK-Registered Company',
+  'Model-Agnostic Architecture',
+  'Vector RAG Specialists',
+  'No Retainers. No Surprises.',
 ]
 
+// Normal speed: 35px/s. Slow speed on enter: 12px/s for 2s then back to 35px/s.
+const SPEED_NORMAL = 35
+const SPEED_SLOW   = 12
+
 export default function ProofNumbers() {
+  const trackRef   = useRef<HTMLDivElement>(null)
+  const wrapRef    = useRef<HTMLDivElement>(null)
+  const posRef     = useRef(0)
+  const speedRef   = useRef(SPEED_SLOW)
+  const pausedRef  = useRef(false)
+  const lastTimeRef = useRef<number | null>(null)
+  const rafRef     = useRef<number>(0)
+  const [entered, setEntered] = useState(false)
+
+  // Triple the items so the seamless loop works at any viewport width
+  const repeated = [...ITEMS, ...ITEMS, ...ITEMS]
+  const segLen   = ITEMS.length
+
+  useEffect(() => {
+    const wrap = wrapRef.current
+    if (!wrap) return
+    if (checkReducedMotion()) { setEntered(true); return }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setEntered(true)
+          // Slow-in on enter: 12px/s for 2s then ramp to 35px/s
+          speedRef.current = SPEED_SLOW
+          setTimeout(() => { speedRef.current = SPEED_NORMAL }, 2000)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.5 },
+    )
+    observer.observe(wrap)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track) return
+
+    // Measure one segment width after render
+    const getSegWidth = () => {
+      const items = track.querySelectorAll<HTMLElement>('.ticker-item')
+      let w = 0
+      for (let i = 0; i < segLen; i++) w += items[i]?.offsetWidth ?? 0
+      return w
+    }
+
+    let segWidth = 0
+
+    const tick = (time: number) => {
+      if (lastTimeRef.current === null) lastTimeRef.current = time
+      const dt = (time - lastTimeRef.current) / 1000
+      lastTimeRef.current = time
+
+      if (!pausedRef.current) {
+        if (segWidth === 0) segWidth = getSegWidth()
+        posRef.current += speedRef.current * dt
+        if (segWidth > 0 && posRef.current >= segWidth) posRef.current -= segWidth
+        track.style.transform = `translateX(${-posRef.current}px)`
+      }
+
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+
+    const onVisible = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(rafRef.current)
+        lastTimeRef.current = null
+      } else {
+        rafRef.current = requestAnimationFrame(tick)
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      cancelAnimationFrame(rafRef.current)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [segLen])
+
   return (
-    <div style={{
-      borderTop:    '1px solid rgba(214,53,69,.1)',
-      borderBottom: '1px solid rgba(214,53,69,.1)',
-      padding: '1.6rem 0',
-      overflow: 'hidden',
-      background: 'rgba(10,7,6,.55)',
-      position: 'relative',
-    }}>
-      {/* Fade left edge */}
+    <div
+      ref={wrapRef}
+      style={{
+        borderTop:    '1px solid rgba(214,53,69,0.1)',
+        borderBottom: '1px solid rgba(214,53,69,0.1)',
+        padding: '1.4rem 0',
+        overflow: 'hidden',
+        background: 'rgba(10,7,6,0.6)',
+        position: 'relative',
+      }}
+      onMouseEnter={() => { pausedRef.current = true  }}
+      onMouseLeave={() => { pausedRef.current = false }}
+    >
+      {/* Left vignette */}
       <div style={{
-        position: 'absolute', left: 0, top: 0, bottom: 0, width: 120,
-        background: 'linear-gradient(90deg, #0d0a08 30%, transparent)',
+        position: 'absolute', left: 0, top: 0, bottom: 0, width: 140,
+        background: 'linear-gradient(90deg, #0d0a08 10%, transparent)',
         zIndex: 2, pointerEvents: 'none',
       }} />
-      {/* Fade right edge */}
+      {/* Right vignette */}
       <div style={{
-        position: 'absolute', right: 0, top: 0, bottom: 0, width: 120,
-        background: 'linear-gradient(-90deg, #0d0a08 30%, transparent)',
+        position: 'absolute', right: 0, top: 0, bottom: 0, width: 140,
+        background: 'linear-gradient(-90deg, #0d0a08 10%, transparent)',
         zIndex: 2, pointerEvents: 'none',
       }} />
 
-      {/* Ticker track — doubled for seamless loop */}
-      <div className="ticker-track">
-        {[...ITEMS, ...ITEMS, ...ITEMS].map((item, i) => (
-          <div key={i} className="ticker-item">
-            <span className="ticker-value">{item.value}</span>
-            <span className="ticker-sep">—</span>
-            <span className="ticker-label">{item.label}</span>
-            <span className="ticker-dot">·</span>
+      {/* Track */}
+      <div
+        ref={trackRef}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          whiteSpace: 'nowrap',
+          willChange: 'transform',
+          opacity: entered ? 1 : 0,
+          transition: 'opacity 600ms var(--ease-out)',
+        }}
+      >
+        {repeated.map((item, i) => (
+          <div key={i} className="ticker-item" style={{ display: 'inline-flex', alignItems: 'center' }}>
+            {/* Separator diamond */}
+            <span style={{
+              color: '#d63545',
+              fontSize: '.7rem',
+              padding: '0 1.4rem',
+              opacity: .7,
+            }}>✦</span>
+            {/* Label */}
+            <span style={{
+              fontFamily: 'var(--font-instrument), sans-serif',
+              fontSize: '.85rem',
+              fontWeight: 500,
+              color: '#6b5548',
+            }}>
+              {item}
+            </span>
           </div>
         ))}
       </div>
-
-      <style>{`
-        .ticker-track {
-          display: inline-flex;
-          align-items: center;
-          white-space: nowrap;
-          animation: ticker-scroll 32s linear infinite;
-          gap: 0;
-        }
-        .ticker-track:hover { animation-play-state: paused; }
-
-        .ticker-item {
-          display: inline-flex;
-          align-items: baseline;
-          gap: .75rem;
-          padding: 0 2.5rem;
-        }
-
-        .ticker-value {
-          font-family: var(--font-cormorant), serif;
-          font-style: italic;
-          font-weight: 300;
-          font-size: 1.5rem;
-          color: #ffffff;
-          line-height: 1;
-        }
-
-        .ticker-sep {
-          font-family: var(--font-jetbrains), monospace;
-          font-size: .55rem;
-          color: rgba(214,53,69,.4);
-          letter-spacing: .1em;
-        }
-
-        .ticker-label {
-          font-family: var(--font-jetbrains), monospace;
-          font-size: .6rem;
-          color: #6b5548;
-          letter-spacing: .16em;
-          text-transform: uppercase;
-        }
-
-        .ticker-dot {
-          color: rgba(214,53,69,.35);
-          font-size: 1.2rem;
-          padding-left: 2.5rem;
-        }
-
-        @keyframes ticker-scroll {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-33.333%); }
-        }
-      `}</style>
     </div>
   )
 }
