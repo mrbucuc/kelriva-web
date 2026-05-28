@@ -1,12 +1,14 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+import { useTextScramble, checkReducedMotion } from '@/lib/animations'
 
 const SERVICES = [
   {
     idx: '01',
     title: 'Intelligent Document Processing',
-    sub: '& Decision Systems',
+    sub: 'IDP & Decision Systems',
     accent: '#d63545',
     body: 'Extract, classify, and act on data from any document type. Contracts, KYC packets, compliance filings — processed automatically with AI decision layers. Live in production at enterprise clients today.',
     verticals: ['Fintech', 'ESG', 'Finance'],
@@ -14,7 +16,7 @@ const SERVICES = [
   {
     idx: '02',
     title: 'AI Workflow Automation',
-    sub: '& Agentic Systems',
+    sub: 'Agentic Systems',
     accent: '#00e09c',
     body: 'Multi-step AI agents that plan, reason, and execute across your systems — replacing manual approval chains end-to-end. Built on LangGraph with full observability and enterprise monitoring.',
     verticals: ['Fintech', 'Coaching', 'ESG'],
@@ -30,179 +32,194 @@ const SERVICES = [
 ]
 
 export default function Services() {
+  const sectionRef  = useRef<HTMLElement>(null)
+  const headingRef  = useRef<HTMLDivElement>(null)
+  const [entered, setEntered] = useState(false)
+
+  // Heading scramble on section enter
+  const scrambled = useTextScramble('Three capabilities. One outcome.', entered, 900)
+
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    if (checkReducedMotion()) { setEntered(true); return }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setEntered(true); observer.disconnect() } },
+      { threshold: 0.08 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <section id="services" style={{ padding: '8rem 3rem' }}>
+    <section
+      id="services"
+      ref={sectionRef}
+      style={{ padding: '9rem 3rem', background: 'var(--color-ink-warm)' }}
+    >
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-        {/* Header */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'end', marginBottom: '5rem' }} className="svc-header">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
-          >
-            <div style={{
-              fontFamily: 'var(--font-jetbrains), monospace',
-              fontSize: '.66rem', color: '#d63545',
-              letterSpacing: '.22em', textTransform: 'uppercase',
-              marginBottom: '.9rem', display: 'flex', alignItems: 'center', gap: '.6rem',
-            }}>
-              <span style={{ opacity: .5 }}>//</span> What we build
-            </div>
-            <h2 style={{
-              fontFamily: 'var(--font-cormorant), serif',
-              fontSize: 'clamp(2rem,4.5vw,3.6rem)',
-              fontWeight: 300, fontStyle: 'italic',
-              color: '#ffffff', lineHeight: 1.1, letterSpacing: '-.02em',
-            }}>
-              Three capabilities.<br />
-              <strong style={{ fontStyle: 'normal', fontFamily: 'var(--font-sans), sans-serif', fontWeight: 700 }}>One outcome.</strong>
-            </h2>
-          </motion.div>
+        {/* Section header */}
+        <div style={{ marginBottom: '5rem' }} className="svc-header">
 
-          <motion.p
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.7, delay: 0.12, ease: [0.23, 1, 0.32, 1] }}
-            style={{ fontSize: '.95rem', color: '#9a7a6a', lineHeight: 1.85 }}
-          >
-            The manual processes slowing your organisation down get replaced
-            by systems that work around the clock.
-          </motion.p>
+          {/* Red rule — draws left→right on enter */}
+          <div style={{
+            width: 40, height: 2,
+            background: '#d63545',
+            marginBottom: '2rem',
+            transformOrigin: 'left',
+            transform: entered ? 'scaleX(1)' : 'scaleX(0)',
+            transition: `transform 600ms var(--ease-out) ${checkReducedMotion() ? '0ms' : '100ms'}`,
+          }} />
+
+          <div ref={headingRef}>
+            <div className="t-mono" style={{ color: '#6b5548', marginBottom: '1.2rem' }}>
+              What we build
+            </div>
+
+            {/* Scramble heading */}
+            <h2 style={{
+              fontFamily: 'var(--font-instrument), sans-serif',
+              fontWeight: 700,
+              fontSize: 'clamp(2rem, 3.5vw, 3rem)',
+              color: '#ffffff',
+              letterSpacing: '-.02em',
+              lineHeight: 1.1,
+              fontVariantNumeric: 'tabular-nums',
+              fontStyle: 'normal',
+              // During scramble: monospace render for even char widths
+              fontFamilyOverride: entered ? undefined : 'var(--font-jetbrains)',
+            } as React.CSSProperties}
+            >
+              <span style={{
+                fontFamily: entered && scrambled === 'Three capabilities. One outcome.'
+                  ? 'var(--font-instrument), sans-serif'
+                  : 'var(--font-jetbrains), monospace',
+                transition: 'font-family 200ms',
+              }}>
+                {scrambled}
+              </span>
+            </h2>
+          </div>
         </div>
 
         {/* Service rows */}
-        <div>
+        <div style={{ borderTop: '1px solid rgba(214,53,69,0.08)' }}>
           {SERVICES.map((s, i) => (
-            <ServiceRow key={s.idx} {...s} index={i} total={SERVICES.length} />
+            <ServiceRow key={s.idx} {...s} index={i} total={SERVICES.length} entered={entered} />
           ))}
         </div>
-
       </div>
 
       <style>{`
         @media (max-width: 900px) {
-          .svc-header { grid-template-columns: 1fr !important; gap: 2rem !important; }
           section#services { padding: 5rem 1.5rem !important; }
-          .svc-row-inner { grid-template-columns: 48px 1fr !important; }
-          .svc-divider-col { display: none !important; }
-          .svc-body-col { grid-column: 1 / -1 !important; margin-top: 1.5rem !important; padding-left: 0 !important; }
+          .svc-row-grid { grid-template-columns: 1fr !important; gap: 1.5rem 0 !important; }
+          .svc-divider { display: none !important; }
+          .svc-body { padding-left: 0 !important; }
         }
       `}</style>
     </section>
   )
 }
 
-function ServiceRow({ idx, title, sub, accent, body, verticals, index, total }: typeof SERVICES[0] & { index: number; total: number }) {
+function ServiceRow({
+  idx, title, sub, accent, body, verticals, index, entered,
+}: typeof SERVICES[0] & { index: number; total: number; entered: boolean }) {
+  const [hovered, setHovered] = useState(false)
+  const delay = checkReducedMotion() ? 0 : index * 120
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.65, delay: index * 0.1, ease: [0.23, 1, 0.32, 1] }}
-      className="svc-row"
+      initial={{ opacity: 0, x: index % 2 === 0 ? -40 : 40 }}
+      animate={entered ? { opacity: 1, x: 0 } : {}}
+      transition={{ duration: 0.6, delay: delay / 1000, ease: [0.23, 1, 0.32, 1] }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      data-cursor="link"
       style={{
-        borderTop: '1px solid rgba(214,53,69,.08)',
-        borderBottom: index === total - 1 ? '1px solid rgba(214,53,69,.08)' : 'none',
         position: 'relative',
-        transition: 'background .35s',
+        borderBottom: '1px solid rgba(214,53,69,0.08)',
+        background: hovered ? 'rgba(214,53,69,0.025)' : 'transparent',
+        transition: 'background 250ms var(--ease-out)',
+        overflow: 'hidden',
       }}
     >
-      {/* Left accent line — revealed on hover */}
-      <div className="svc-accent-line" style={{
+      {/* Left accent bar — clip-path slides down on hover */}
+      <div style={{
         position: 'absolute',
         left: 0, top: 0, bottom: 0,
-        width: '2px',
+        width: 2,
         background: accent,
-        transform: 'scaleY(0)',
-        transformOrigin: 'top',
-        transition: 'transform .45s cubic-bezier(0.23,1,0.32,1)',
+        clipPath: hovered ? 'inset(0 0 0% 0)' : 'inset(0 0 100% 0)',
+        transition: `clip-path 450ms var(--ease-out)`,
       }} />
 
-      <div
-        className="svc-row-inner"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '72px 1fr 1px 1.1fr',
-          gap: '0 3rem',
-          padding: '3.5rem 0 3.5rem 1.5rem',
-          alignItems: 'start',
-        }}
-      >
-        {/* Number */}
-        <div style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: '.68rem',
-          color: accent,
-          letterSpacing: '.14em',
-          paddingTop: '.35rem',
-          opacity: .8,
+      {/* Large typographic index anchor */}
+      <div style={{
+        position: 'absolute',
+        top: '-1rem',
+        right: '2rem',
+        lineHeight: 1,
+        pointerEvents: 'none',
+        userSelect: 'none',
+        zIndex: 0,
+      }}>
+        <span className="t-index" style={{
+          opacity: hovered ? 0.55 : 0.25,
+          transition: 'opacity 250ms var(--ease-out)',
         }}>
           {idx}
-        </div>
+        </span>
+      </div>
 
-        {/* Title + sub */}
+      <div
+        className="svc-row-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1px 1.1fr',
+          gap: '0 3.5rem',
+          padding: '3.5rem 1.5rem 3.5rem 2rem',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        {/* Left: title + sub + verticals */}
         <div>
+          <div className="t-mono" style={{ color: accent, marginBottom: '1rem', opacity: .8 }}>
+            {idx} — {sub}
+          </div>
           <h3 style={{
-            fontFamily: 'var(--font-cormorant), serif',
-            fontStyle: 'italic',
-            fontWeight: 300,
-            fontSize: 'clamp(1.5rem, 2.4vw, 2.1rem)',
+            fontFamily: 'var(--font-instrument), sans-serif',
+            fontWeight: 600,
+            fontSize: 'clamp(1.3rem, 2vw, 1.75rem)',
             color: '#ffffff',
-            lineHeight: 1.15,
+            lineHeight: 1.2,
             letterSpacing: '-.01em',
-            marginBottom: '.5rem',
+            marginBottom: '1.5rem',
           }}>
             {title}
           </h3>
-          <div style={{
-            fontFamily: 'var(--font-instrument), sans-serif',
-            fontWeight: 600,
-            fontSize: '.78rem',
-            color: accent,
-            letterSpacing: '.1em',
-            textTransform: 'uppercase',
-          }}>
-            {sub}
-          </div>
-        </div>
-
-        {/* Vertical divider */}
-        <div className="svc-divider-col" style={{ background: 'rgba(214,53,69,.08)', alignSelf: 'stretch' }} />
-
-        {/* Body + verticals */}
-        <div className="svc-body-col">
-          <p style={{
-            fontSize: '.88rem',
-            color: '#9a7a6a',
-            lineHeight: 1.9,
-            marginBottom: '1.75rem',
-          }}>
-            {body}
-          </p>
-          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            {verticals.map((v, i) => (
-              <span key={v} style={{
-                fontFamily: 'var(--font-jetbrains), monospace',
-                fontSize: '.58rem',
-                color: '#6b5548',
-                letterSpacing: '.14em',
-                textTransform: 'uppercase',
-              }}>
-                {i > 0 && <span style={{ marginRight: '1.5rem', opacity: .3 }}>·</span>}
+          <div style={{ display: 'flex', gap: '1.2rem', flexWrap: 'wrap' }}>
+            {verticals.map(v => (
+              <span key={v} className="t-mono" style={{ color: '#6b5548', fontSize: '.65rem' }}>
                 {v}
               </span>
             ))}
           </div>
         </div>
-      </div>
 
-      <style>{`
-        .svc-row:hover { background: rgba(21,15,9,.5) !important; }
-        .svc-row:hover .svc-accent-line { transform: scaleY(1) !important; }
-      `}</style>
+        {/* Divider */}
+        <div className="svc-divider" style={{ background: 'rgba(214,53,69,0.07)', alignSelf: 'stretch' }} />
+
+        {/* Right: body */}
+        <div className="svc-body" style={{ paddingLeft: '1rem' }}>
+          <p className="t-body" style={{ color: '#9a7a6a', margin: 0 }}>
+            {body}
+          </p>
+        </div>
+      </div>
     </motion.div>
   )
 }
