@@ -86,8 +86,8 @@ export function useElementScrollProgress() {
 
 // ── Parallax offset (px) for an element ──────────────────────────────────────
 // speed: 0 = no movement, 1 = moves with scroll, 0.1 = slow parallax
-export function useParallax(speed = 0.1) {
-  const ref    = useRef<HTMLElement>(null)
+export function useParallax<T extends HTMLElement = HTMLElement>(speed = 0.1) {
+  const ref    = useRef<T>(null)
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {

@@ -10,6 +10,8 @@ import GlobeSection from '@/components/GlobeSection'
 import ProofNumbers from '@/components/ProofNumbers'
 import CaseStudies from '@/components/CaseStudies'
 import Process from '@/components/Process'
+import CapabilitiesSection from '@/components/CapabilitiesSection'
+import AboutSection from '@/components/AboutSection'
 import CtaSection from '@/components/CtaSection'
 import Footer from '@/components/Footer'
 import ChatWidget from '@/components/ChatWidget'
@@ -31,6 +33,8 @@ export default function Page() {
       <ProofNumbers />
       <CaseStudies />
       <Process />
+      <CapabilitiesSection />
+      <AboutSection />
       <CtaSection onBookCall={openChat} />
       <Footer />
       <ChatWidget isOpen={chatOpen} onToggle={toggleChat} />
