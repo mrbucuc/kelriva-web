@@ -1,36 +1,65 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { geoOrthographic, geoPath, geoGraticule, geoDistance } from 'd3-geo'
+import { feature } from 'topojson-client'
 
-const CX = 300
-const CY = 300
-const GR = 272
-
-function polar(angleDeg: number, dist: number) {
-  const r = (angleDeg * Math.PI) / 180
-  return { x: CX + Math.sin(r) * dist * GR, y: CY - Math.cos(r) * dist * GR }
-}
-
+// ── City coordinates (real lat/lon) ───────────────────────────────────────────
 const CITIES = [
-  { id: 'paris',   name: 'Paris',         angle: 152, dist: 0.40, r: 3.2, labelSide: 'right' as const },
-  { id: 'fra',     name: 'Frankfurt',     angle: 118, dist: 0.46, r: 3.2, labelSide: 'right' as const },
-  { id: 'ams',     name: 'Amsterdam',     angle: 102, dist: 0.38, r: 3.0, labelSide: 'right' as const },
-  { id: 'rome',    name: 'Rome',          angle: 145, dist: 0.52, r: 3.0, labelSide: 'right' as const },
-  { id: 'ny',      name: 'New York',      angle: 287, dist: 0.70, r: 4.0, labelSide: 'left'  as const },
-  { id: 'toronto', name: 'Toronto',       angle: 292, dist: 0.71, r: 3.0, labelSide: 'left'  as const },
-  { id: 'sf',      name: 'San Francisco', angle: 323, dist: 0.80, r: 3.5, labelSide: 'left'  as const },
-  { id: 'dubai',   name: 'Dubai',         angle: 112, dist: 0.70, r: 3.5, labelSide: 'right' as const },
-  { id: 'sg',      name: 'Singapore',     angle: 91,  dist: 0.86, r: 3.5, labelSide: 'right' as const },
-  { id: 'tokyo',   name: 'Tokyo',         angle: 46,  dist: 0.83, r: 3.5, labelSide: 'right' as const },
-  { id: 'sydney',  name: 'Sydney',        angle: 133, dist: 0.96, r: 3.0, labelSide: 'right' as const },
+  { id: 'london',  name: 'London',        lon: -0.1278,  lat:  51.5074, r: 5.0 },
+  { id: 'paris',   name: 'Paris',         lon:  2.3522,  lat:  48.8566, r: 3.0 },
+  { id: 'fra',     name: 'Frankfurt',     lon:  8.6821,  lat:  50.1109, r: 3.0 },
+  { id: 'ams',     name: 'Amsterdam',     lon:  4.9041,  lat:  52.3676, r: 3.0 },
+  { id: 'ny',      name: 'New York',      lon: -74.0060, lat:  40.7128, r: 4.0 },
+  { id: 'toronto', name: 'Toronto',       lon: -79.3832, lat:  43.6532, r: 3.0 },
+  { id: 'sf',      name: 'San Francisco', lon: -122.419, lat:  37.7749, r: 3.5 },
+  { id: 'dubai',   name: 'Dubai',         lon:  55.2708, lat:  25.2048, r: 3.5 },
+  { id: 'sg',      name: 'Singapore',     lon: 103.8198, lat:   1.3521, r: 3.5 },
+  { id: 'tokyo',   name: 'Tokyo',         lon: 139.6917, lat:  35.6762, r: 3.5 },
+  { id: 'sydney',  name: 'Sydney',        lon: 151.2093, lat: -33.8688, r: 3.0 },
 ]
 
-const RINGS   = [0.22, 0.40, 0.57, 0.73, 0.88]
-const RADIALS = Array.from({ length: 12 }, (_, i) => i * 30)
+const BG_CITY_IDS    = new Set(['paris', 'fra', 'ams', 'toronto', 'sydney'])
+const LABEL_CITY_IDS = new Set(['ny', 'sf', 'dubai', 'sg', 'tokyo'])
+
+// ── Card metadata — no alwaysVisible ──────────────────────────────────────────
+const CARD_META: Record<string, { label: string; city: string; detail: string }> = {
+  london: { label: 'HQ',            city: 'London',        detail: 'GMT · Primary hub'     },
+  ny:     { label: 'Financial Hub', city: 'New York',      detail: 'EST · Trading desks'   },
+  sf:     { label: 'Tech Cluster',  city: 'San Francisco', detail: 'PST · Engineering'     },
+  dubai:  { label: 'MENA Gateway',  city: 'Dubai',         detail: 'GST · Regional bridge' },
+  sg:     { label: 'APAC Centre',   city: 'Singapore',     detail: 'SGT · Asia office'     },
+  tokyo:  { label: 'Asia Pacific',  city: 'Tokyo',         detail: 'JST · Markets desk'    },
+}
+const CARD_IDS = new Set(Object.keys(CARD_META))
+
+// Scroll reveal stages — london has no stage (hover-only)
+const REVEAL_STAGES = [
+  { id: 'ny',    enter: 0.15, exit: 0.30 },
+  { id: 'sf',    enter: 0.30, exit: 0.42 },
+  { id: 'dubai', enter: 0.42, exit: 0.55 },
+  { id: 'sg',    enter: 0.55, exit: 0.68 },
+  { id: 'tokyo', enter: 0.68, exit: 0.82 },
+] as const
 
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t }
 
-// ── Scroll keyframes: tilt + translate (Step 4) ───────────────────────────────
+type CardSide = 'right' | 'left' | 'below'
+
+// base = transform when card is visible (positions relative to dot)
+// slide = extra offset added when hidden
+const CARD_BASE: Record<CardSide, string> = {
+  right: 'translateY(-50%)',
+  left:  'translateY(-50%) translateX(-100%)',
+  below: 'translateX(-50%)',
+}
+const CARD_SLIDE: Record<CardSide, string> = {
+  right: ' translateX(8px)',
+  left:  ' translateX(-8px)',
+  below: ' translateY(8px)',
+}
+
+// ── Scroll keyframes: tilt + translate ───────────────────────────────────────
 const SCROLL_KEYS: [number, number, number][] = [
   [0.00,  -8, -60],
   [0.20,   0,   0],
@@ -51,40 +80,6 @@ function scrollToTilt(p: number): { tiltX: number; tx: number } {
   return { tiltX: 0, tx: 0 }
 }
 
-// ── City reveal sequence (Step 6) ─────────────────────────────────────────────
-const REVEAL_STAGES = [
-  { id: 'ny',    enter: 0.15, exit: 0.30 },
-  { id: 'sf',    enter: 0.30, exit: 0.42 },
-  { id: 'dubai', enter: 0.42, exit: 0.55 },
-  { id: 'sg',    enter: 0.55, exit: 0.68 },
-  { id: 'tokyo', enter: 0.68, exit: 0.82 },
-] as const
-
-const BG_CITY_IDS    = new Set(['paris', 'fra', 'ams', 'rome', 'toronto', 'sydney'])
-const LABEL_CITY_IDS = new Set(['ny', 'sf', 'dubai', 'sg', 'tokyo'])
-
-type CardSide = 'right' | 'left' | 'below'
-
-const CARD_CITIES = [
-  { id: 'london', label: 'HQ',           city: 'London',        detail: 'GMT · Primary hub',     nodeXpct: 50.00, nodeYpct: 50.00, side: 'below' as CardSide, enter: 0,    exit: 0.82, alwaysVisible: true  },
-  { id: 'ny',     label: 'Financial Hub', city: 'New York',      detail: 'EST · Trading desks',   nodeXpct: 19.65, nodeYpct: 40.72, side: 'right' as CardSide, enter: 0.15, exit: 0.30, alwaysVisible: false },
-  { id: 'sf',     label: 'Tech Cluster',  city: 'San Francisco', detail: 'PST · Engineering',     nodeXpct: 28.18, nodeYpct: 21.03, side: 'right' as CardSide, enter: 0.30, exit: 0.42, alwaysVisible: false },
-  { id: 'dubai',  label: 'MENA Gateway',  city: 'Dubai',         detail: 'GST · Regional bridge', nodeXpct: 79.43, nodeYpct: 61.90, side: 'left'  as CardSide, enter: 0.42, exit: 0.55, alwaysVisible: false },
-  { id: 'sg',     label: 'APAC Centre',   city: 'Singapore',     detail: 'SGT · Asia office',     nodeXpct: 89.00, nodeYpct: 50.68, side: 'left'  as CardSide, enter: 0.55, exit: 0.68, alwaysVisible: false },
-  { id: 'tokyo',  label: 'Asia Pacific',  city: 'Tokyo',         detail: 'JST · Markets desk',    nodeXpct: 77.10, nodeYpct: 23.83, side: 'left'  as CardSide, enter: 0.68, exit: 0.82, alwaysVisible: false },
-]
-
-const CARD_BASE: Record<CardSide, string> = {
-  right: 'translateY(-50%)',
-  left:  'translateY(-50%)',
-  below: 'translateX(-50%)',
-}
-const CARD_SLIDE: Record<CardSide, string> = {
-  right: ' translateX(8px)',
-  left:  ' translateX(-8px)',
-  below: ' translateY(8px)',
-}
-
 export default function GlobeSection() {
   const outerRef     = useRef<HTMLDivElement>(null)
   const sectionRef   = useRef<HTMLElement>(null)
@@ -92,26 +87,42 @@ export default function GlobeSection() {
   const overlayRef   = useRef<HTMLDivElement>(null)
   const finaleRef    = useRef<HTMLDivElement>(null)
 
+  // Canvas + SVG refs
+  const canvasRef      = useRef<HTMLCanvasElement>(null)
+  const svgOverlayRef  = useRef<SVGSVGElement>(null)
+  const londonPulseRef = useRef<SVGGElement>(null)
+
+  // D3 state — all stored in refs, never triggers re-render
+  const projRef    = useRef<ReturnType<typeof geoOrthographic> | null>(null)
+  const topoRef    = useRef<any>(null)
+  const ctxRef     = useRef<CanvasRenderingContext2D | null>(null)
+  const pathGenRef = useRef<any>(null)
+
   // Transform state
-  const rotYBase  = useRef(0)
-  const tiltX     = useRef(0);  const tiltXTgt  = useRef(0)
-  const tx        = useRef(0);  const txTgt      = useRef(0)
-  const mouseX    = useRef(0);  const mouseXTgt  = useRef(0)
-  const mouseY    = useRef(0);  const mouseYTgt  = useRef(0)
+  const rotYBase = useRef(0)
+  const tiltX    = useRef(0);  const tiltXTgt  = useRef(0)
+  const tx       = useRef(0);  const txTgt     = useRef(0)
+  const mouseX   = useRef(0);  const mouseXTgt = useRef(0)
+  const mouseY   = useRef(0);  const mouseYTgt = useRef(0)
 
   const scrollProg = useRef(0)
   const rafId      = useRef(0)
   const inView     = useRef(false)
 
-  // SVG element refs — populated via callback refs in JSX
-  const dotRefs    = useRef<Map<string, SVGCircleElement>>(new Map())
-  const lineRefs   = useRef<Map<string, SVGPathElement>>(new Map())
-  const labelRefs  = useRef<Map<string, SVGTextElement>>(new Map())
-  // Track which lines have been triggered (they stay drawn once drawn)
-  const drawnLines = useRef<Set<string>>(new Set())
+  // SVG element refs (populated by callback refs in JSX)
+  const dotRefs         = useRef<Map<string, SVGCircleElement>>(new Map())
+  const labelRefs       = useRef<Map<string, SVGTextElement>>(new Map())
+  const drawnLines      = useRef<Set<string>>(new Set())
+  const lineProgressRef = useRef<Map<string, number>>(new Map())
 
-  const cardRefs        = useRef<Map<string, HTMLDivElement>>(new Map())
-  const connRefs        = useRef<Map<string, HTMLDivElement>>(new Map())
+  // Card refs
+  const cardOuterRefs  = useRef<Map<string, HTMLDivElement>>(new Map())
+  const cardInnerRefs  = useRef<Map<string, HTMLDivElement>>(new Map())
+  const connectorRefs  = useRef<Map<string, HTMLDivElement>>(new Map())
+  const cardVisibleRef = useRef<Map<string, boolean>>(new Map())
+  const cardSideRef    = useRef<Map<string, CardSide>>(new Map())
+  const hoveredCity    = useRef<string | null>(null)
+
   const progressFillRef = useRef<HTMLDivElement>(null)
   const counterRef      = useRef<HTMLDivElement>(null)
 
@@ -119,26 +130,229 @@ export default function GlobeSection() {
     const outer    = outerRef.current
     const section  = sectionRef.current
     const globeDiv = globeWrapRef.current
-    if (!outer || !section || !globeDiv) return
+    const canvas   = canvasRef.current
+    if (!outer || !section || !globeDiv || !canvas) return
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const hasHover     = window.matchMedia('(hover: hover)').matches
 
-    // ── Transform ─────────────────────────────────────────────────────────────
-    const applyTransform = () => {
-      const rX = tiltX.current + mouseY.current
-      const rY = rotYBase.current + mouseX.current
-      globeDiv.style.transform =
-        `perspective(1200px) rotateX(${rX.toFixed(3)}deg) rotateY(${rY.toFixed(3)}deg) translateX(${tx.current.toFixed(2)}px)`
+    // ── D3 projection ──────────────────────────────────────────────────────────
+    const proj = geoOrthographic()
+      .scale(272)
+      .translate([300, 300])
+      .clipAngle(90)
+    projRef.current = proj
+
+    // ── Canvas setup ───────────────────────────────────────────────────────────
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    canvas.width  = 600 * dpr
+    canvas.height = 600 * dpr
+    const ctx = canvas.getContext('2d')!
+    ctx.scale(dpr, dpr)
+    ctxRef.current = ctx
+    pathGenRef.current = geoPath(proj, ctx)
+
+    // Fetch world topology — globe works (just outline) if this fails
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')
+      .then(r => r.json())
+      .then((data: any) => { topoRef.current = data })
+      .catch(() => {})
+
+    // ── Globe rendering (canvas) ───────────────────────────────────────────────
+    const renderGlobe = () => {
+      const c = ctxRef.current
+      const pathGen = pathGenRef.current
+      if (!c || !pathGen) return
+
+      c.clearRect(0, 0, 600, 600)
+
+      // Ocean fill
+      c.beginPath()
+      pathGen({ type: 'Sphere' })
+      c.fillStyle = 'rgba(214,53,69,0.03)'
+      c.fill()
+
+      // Graticule
+      c.beginPath()
+      pathGen(geoGraticule()())
+      c.strokeStyle = 'rgba(214,53,69,0.12)'
+      c.lineWidth = 0.5
+      c.stroke()
+
+      // Land masses
+      if (topoRef.current) {
+        const land = feature(topoRef.current, topoRef.current.objects.land)
+        c.beginPath()
+        pathGen(land as any)
+        c.fillStyle = '#1c1610'
+        c.fill()
+        c.strokeStyle = 'rgba(214,53,69,0.22)'
+        c.lineWidth = 0.5
+        c.stroke()
+      }
+
+      // Connection lines — animated draw via lineProgressRef
+      const isFinale = scrollProg.current >= 0.82
+      CITIES.forEach(city => {
+        if (city.id === 'london' || !drawnLines.current.has(city.id)) return
+        const londonPt = proj([-0.1278, 51.5074])
+        const cityPt   = proj([city.lon, city.lat])
+        if (!londonPt || !cityPt) return
+        const prog = lineProgressRef.current.get(city.id) ?? 0
+        if (prog <= 0) return
+        const [lx, ly] = londonPt
+        const [cx2, cy2] = cityPt
+        c.beginPath()
+        c.moveTo(lx, ly)
+        c.lineTo(lx + (cx2 - lx) * prog, ly + (cy2 - ly) * prog)
+        c.strokeStyle = isFinale ? 'rgba(214,53,69,0.55)' : 'rgba(214,53,69,0.28)'
+        c.lineWidth = 0.8
+        c.stroke()
+      })
+
+      // Globe outline
+      c.beginPath()
+      pathGen({ type: 'Sphere' })
+      c.strokeStyle = 'rgba(214,53,69,0.4)'
+      c.lineWidth = 1
+      c.stroke()
     }
 
+    // ── Visibility check for back-hemisphere ──────────────────────────────────
+    const isCityVisible = (lon: number, lat: number): boolean => {
+      const rot = proj.rotate()
+      const vizCenter: [number, number] = [-rot[0], -rot[1]]
+      return geoDistance([lon, lat], vizCenter) < Math.PI / 2 - 0.02
+    }
+
+    // ── Update city dot/label positions from D3 projection ────────────────────
+    const updateDotPositions = () => {
+      CITIES.forEach(city => {
+        const projected = proj([city.lon, city.lat])
+        if (!projected) return
+        const [px, py] = projected
+        const visible = isCityVisible(city.lon, city.lat)
+
+        if (city.id === 'london') {
+          // Update London pulse group position
+          if (londonPulseRef.current) {
+            londonPulseRef.current.setAttribute('transform', `translate(${px.toFixed(1)}, ${py.toFixed(1)})`)
+          }
+        } else {
+          const dot = dotRefs.current.get(city.id)
+          if (dot) {
+            dot.setAttribute('cx', px.toFixed(1))
+            dot.setAttribute('cy', py.toFixed(1))
+            dot.style.visibility = visible ? 'visible' : 'hidden'
+          }
+        }
+
+        // Labels
+        const label = labelRefs.current.get(city.id)
+        if (label && LABEL_CITY_IDS.has(city.id)) {
+          const dx = px > 300 ? 8 : -8
+          label.setAttribute('x', (px + dx).toFixed(1))
+          label.setAttribute('y', (py + 1).toFixed(1))
+          label.setAttribute('text-anchor', px > 300 ? 'start' : 'end')
+          label.style.visibility = visible ? 'visible' : 'hidden'
+        }
+
+        // Reposition visible cards
+        if (CARD_IDS.has(city.id) && cardVisibleRef.current.get(city.id)) {
+          positionCard(city.id, px, py)
+        }
+      })
+
+      // Advance line draw progress each frame
+      CITIES.forEach(city => {
+        if (!drawnLines.current.has(city.id)) return
+        const prog = lineProgressRef.current.get(city.id) ?? 0
+        if (prog < 1) lineProgressRef.current.set(city.id, Math.min(1, prog + 0.015))
+      })
+    }
+
+    // ── Card position: outer tracks dot, inner handles visual offset ──────────
+    const positionCard = (id: string, px: number, py: number) => {
+      const outer = cardOuterRefs.current.get(id)
+      if (!outer) return
+
+      outer.style.left = `${(px / 600 * 100).toFixed(2)}%`
+      outer.style.top  = `${(py / 600 * 100).toFixed(2)}%`
+
+      const newSide: CardSide = id === 'london' ? 'below' : px > 300 ? 'right' : 'left'
+      const prevSide = cardSideRef.current.get(id)
+      if (newSide !== prevSide) {
+        cardSideRef.current.set(id, newSide)
+        const inner = cardInnerRefs.current.get(id)
+        const conn  = connectorRefs.current.get(id)
+        if (inner) {
+          inner.style.flexDirection =
+            newSide === 'below' ? 'column' : newSide === 'left' ? 'row-reverse' : 'row'
+          const show = cardVisibleRef.current.get(id) ?? false
+          inner.style.transform = show
+            ? CARD_BASE[newSide]
+            : CARD_BASE[newSide] + CARD_SLIDE[newSide]
+        }
+        if (conn) {
+          if (newSide === 'below') {
+            conn.style.width  = '1px'
+            conn.style.height = '10px'
+            conn.style.transformOrigin = 'top center'
+          } else {
+            conn.style.width  = '10px'
+            conn.style.height = '1px'
+            conn.style.transformOrigin = newSide === 'left' ? 'right center' : 'left center'
+          }
+        }
+      }
+    }
+
+    // ── Show / hide a card ────────────────────────────────────────────────────
+    const setCardVisible = (id: string, show: boolean) => {
+      const wasVisible = cardVisibleRef.current.get(id) ?? false
+      if (show === wasVisible) return
+      cardVisibleRef.current.set(id, show)
+
+      // Snap position before showing so the card doesn't slide from wrong coords
+      if (show) {
+        const city = CITIES.find(c => c.id === id)
+        if (city) {
+          const projected = proj([city.lon, city.lat])
+          if (projected) positionCard(id, projected[0], projected[1])
+        }
+      }
+
+      const inner = cardInnerRefs.current.get(id)
+      if (!inner) return
+      const side = cardSideRef.current.get(id) ?? 'right'
+      inner.style.opacity   = show ? '1' : '0'
+      inner.style.transform = show
+        ? CARD_BASE[side]
+        : CARD_BASE[side] + CARD_SLIDE[side]
+    }
+
+    // ── CSS transform (tilt + mouse parallax only — rotYBase feeds D3, not CSS) ─
+    const applyTransform = () => {
+      const rX = tiltX.current + mouseY.current
+      globeDiv.style.transform =
+        `perspective(1200px) rotateX(${rX.toFixed(3)}deg) rotateY(${mouseX.current.toFixed(3)}deg) translateX(${tx.current.toFixed(2)}px)`
+    }
+
+    // ── RAF tick ──────────────────────────────────────────────────────────────
     const tick = () => {
       rotYBase.current += 0.15
       tiltX.current  = lerp(tiltX.current,  tiltXTgt.current,  0.08)
       tx.current     = lerp(tx.current,     txTgt.current,     0.08)
       mouseX.current = lerp(mouseX.current, mouseXTgt.current, 0.05)
       mouseY.current = lerp(mouseY.current, mouseYTgt.current, 0.05)
+
+      const phi = -20 + tiltX.current * 0.3
+      proj.rotate([-rotYBase.current, phi, 0])
+
+      renderGlobe()
+      updateDotPositions()
       applyTransform()
+
       rafId.current = requestAnimationFrame(tick)
     }
 
@@ -160,20 +374,15 @@ export default function GlobeSection() {
     }
     document.addEventListener('visibilitychange', onVisibility)
 
-    // ── City node reveal ──────────────────────────────────────────────────────
+    // ── City node reveal (scroll-driven) ──────────────────────────────────────
     const updateCityNodes = (p: number) => {
-      // Reduced-motion: reveal all cities statically, skip scroll-driven sequence
       if (reduceMotion) {
         CITIES.forEach(city => {
           const dot   = dotRefs.current.get(city.id)
-          const line  = lineRefs.current.get(city.id)
           const label = labelRefs.current.get(city.id)
-          if (dot)  { dot.style.opacity = '0.8'; dot.style.transform = 'scale(1)'; dot.style.filter = 'none' }
-          if (line && !drawnLines.current.has(city.id)) {
-            line.style.strokeDashoffset = '0'
-            drawnLines.current.add(city.id)
-          }
+          if (dot)  { dot.style.opacity = '0.8'; dot.style.filter = 'none' }
           if (label) label.style.opacity = '1'
+          if (city.id !== 'london') drawnLines.current.add(city.id)
         })
         const finaleDiv = finaleRef.current
         if (finaleDiv) {
@@ -181,95 +390,61 @@ export default function GlobeSection() {
           finaleDiv.style.opacity    = '1'
           finaleDiv.style.transform  = 'translateY(-50%)'
         }
+        CARD_IDS.forEach(id => setCardVisible(id, true))
         return
       }
 
       const isFinale = p >= 0.82
 
-      // Background cities — fade in at scroll start, stay dimmed through the sequence
+      // Background cities
       CITIES.forEach(city => {
         if (!BG_CITY_IDS.has(city.id)) return
-        const dot  = dotRefs.current.get(city.id)
-        const line = lineRefs.current.get(city.id)
+        const dot = dotRefs.current.get(city.id)
         if (dot) {
           dot.style.opacity = isFinale
             ? '0.8'
             : p < 0.05 ? String((p / 0.05) * 0.3) : '0.3'
         }
-        if (line && p >= 0.05 && !drawnLines.current.has(city.id)) {
-          line.style.strokeDashoffset = '0'
-          drawnLines.current.add(city.id)
-        }
+        if (p >= 0.05 && !drawnLines.current.has(city.id)) drawnLines.current.add(city.id)
       })
 
-      // Featured cities — pre / active / past / finale states
+      // Featured cities
       REVEAL_STAGES.forEach(({ id, enter, exit }) => {
         const isActive = p >= enter && p < exit
         const isPast   = p >= exit
         const dot      = dotRefs.current.get(id)
         const label    = labelRefs.current.get(id)
-        const line     = lineRefs.current.get(id)
+        const baseR    = CITIES.find(c => c.id === id)!.r
 
         if (dot) {
           if (isFinale) {
-            dot.style.opacity   = '1'
-            dot.style.transform = 'scale(1)'
-            dot.style.filter    = 'drop-shadow(0 0 5px rgba(214,53,69,0.65))'
+            dot.style.opacity = '1'
+            dot.style.filter  = 'drop-shadow(0 0 5px rgba(214,53,69,0.65))'
+            dot.setAttribute('r', String(baseR))
           } else if (isActive) {
-            dot.style.opacity   = '1'
-            dot.style.transform = 'scale(1.7)'
-            dot.style.filter    = 'none'
+            dot.style.opacity = '1'
+            dot.style.filter  = 'none'
+            dot.setAttribute('r', (baseR * 1.7).toFixed(1))
           } else if (isPast) {
-            dot.style.opacity   = '0.45'
-            dot.style.transform = 'scale(1)'
-            dot.style.filter    = 'none'
+            dot.style.opacity = '0.45'
+            dot.style.filter  = 'none'
+            dot.setAttribute('r', String(baseR))
           } else {
-            // Pre-reveal: ghost hint once scroll has started
-            dot.style.opacity   = p > 0 ? '0.15' : '0'
-            dot.style.transform = 'scale(1)'
-            dot.style.filter    = 'none'
+            dot.style.opacity = p > 0 ? '0.15' : '0'
+            dot.style.filter  = 'none'
+            dot.setAttribute('r', String(baseR))
           }
         }
 
-        if (label) {
-          label.style.opacity = (isFinale || isPast || isActive) ? '1' : '0'
-        }
-
-        // Draw connection line the moment the city becomes active (one-way — stays drawn)
-        if ((isActive || isPast || isFinale) && !drawnLines.current.has(id)) {
-          if (line) line.style.strokeDashoffset = '0'
-          drawnLines.current.add(id)
-        }
+        if (label) label.style.opacity = (isFinale || isPast || isActive) ? '1' : '0'
+        if ((isActive || isPast || isFinale) && !drawnLines.current.has(id)) drawnLines.current.add(id)
       })
 
-      // Card + connector visibility
-      CARD_CITIES.forEach(card => {
-        const wrapper = cardRefs.current.get(card.id)
-        const conn    = connRefs.current.get(card.id)
-        if (!wrapper) return
-
-        const show = card.alwaysVisible ? p < card.exit : (p >= card.enter && p < card.exit)
-
-        const base  = CARD_BASE[card.side]
-        const slide = CARD_SLIDE[card.side]
-
-        wrapper.style.opacity   = show ? '1' : '0'
-        wrapper.style.transform = show ? base : base + slide
-
-        if (conn) {
-          const isHoriz = card.side !== 'below'
-          conn.style.transform = show
-            ? (isHoriz ? 'scaleX(1)' : 'scaleY(1)')
-            : (isHoriz ? 'scaleX(0)' : 'scaleY(0)')
-        }
-      })
-
-      // Brighten all drawn lines in finale
-      CITIES.forEach(city => {
-        const line = lineRefs.current.get(city.id)
-        if (line && drawnLines.current.has(city.id)) {
-          line.style.stroke = isFinale ? 'rgba(214,53,69,0.55)' : ''
-        }
+      // Cards — hidden by default, show on scroll window OR hover
+      CARD_IDS.forEach(id => {
+        const isScrollActive = REVEAL_STAGES.some(s => s.id === id && p >= s.enter && p < s.exit)
+        const isHovered      = hoveredCity.current === id
+        setCardVisible(id, isScrollActive || isHovered)
       })
 
       // Finale tagline
@@ -281,7 +456,7 @@ export default function GlobeSection() {
           : 'translateY(calc(-50% + 14px))'
       }
 
-      // Progress thread fill
+      // Progress thread
       const fill = progressFillRef.current
       if (fill) fill.style.transform = `scaleY(${p.toFixed(3)})`
 
@@ -294,7 +469,10 @@ export default function GlobeSection() {
       }
     }
 
-    // Initialise all nodes to their p=0 state
+    // ── Initial render ────────────────────────────────────────────────────────
+    proj.rotate([0, -20, 0])
+    renderGlobe()
+    updateDotPositions()
     updateCityNodes(0)
 
     // ── Scroll ────────────────────────────────────────────────────────────────
@@ -318,7 +496,7 @@ export default function GlobeSection() {
     }
     window.addEventListener('scroll', onScroll, { passive: true })
 
-    // ── Mouse (desktop only) ──────────────────────────────────────────────────
+    // ── Mouse parallax (desktop only) ─────────────────────────────────────────
     let mouseRafId = 0
     if (hasHover && !reduceMotion) {
       const onMouseMove = (e: MouseEvent) => {
@@ -326,10 +504,8 @@ export default function GlobeSection() {
         mouseRafId = requestAnimationFrame(() => {
           mouseRafId = 0
           const rect = section.getBoundingClientRect()
-          const nx = (e.clientX - rect.left) / rect.width  * 2 - 1
-          const ny = (e.clientY - rect.top)  / rect.height * 2 - 1
-          mouseXTgt.current =  nx * 12
-          mouseYTgt.current =  ny * 8
+          mouseXTgt.current = ((e.clientX - rect.left) / rect.width  * 2 - 1) * 12
+          mouseYTgt.current = ((e.clientY - rect.top)  / rect.height * 2 - 1) * 8
         })
       }
       const onMouseLeave = () => { mouseXTgt.current = 0; mouseYTgt.current = 0 }
@@ -337,11 +513,57 @@ export default function GlobeSection() {
       section.addEventListener('mouseleave', onMouseLeave)
     }
 
+    // ── Hover detection on city dots ──────────────────────────────────────────
+    const onPointerMove = (e: PointerEvent) => {
+      const svgEl = svgOverlayRef.current
+      if (!svgEl) return
+      const ctm = svgEl.getScreenCTM()
+      if (!ctm) return
+      const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse())
+
+      let closest: string | null = null
+      let minDist = 18
+      CITIES.forEach(city => {
+        const dot = dotRefs.current.get(city.id)
+        if (!dot || dot.style.visibility === 'hidden') return
+        const cx = parseFloat(dot.getAttribute('cx') || '0')
+        const cy = parseFloat(dot.getAttribute('cy') || '0')
+        const d = Math.hypot(pt.x - cx, pt.y - cy)
+        if (d < minDist) { minDist = d; closest = city.id }
+      })
+      // also check london pulse group
+      if (londonPulseRef.current) {
+        const transform = londonPulseRef.current.getAttribute('transform') || 'translate(300, 300)'
+        const match = transform.match(/translate\(([\d.]+),\s*([\d.]+)\)/)
+        if (match) {
+          const d = Math.hypot(pt.x - parseFloat(match[1]), pt.y - parseFloat(match[2]))
+          if (d < minDist) { closest = 'london' }
+        }
+      }
+
+      if (closest !== hoveredCity.current) {
+        hoveredCity.current = closest
+        updateCityNodes(scrollProg.current)
+      }
+    }
+
+    const onPointerLeave = () => {
+      if (hoveredCity.current !== null) {
+        hoveredCity.current = null
+        updateCityNodes(scrollProg.current)
+      }
+    }
+
+    section.addEventListener('pointermove', onPointerMove)
+    section.addEventListener('pointerleave', onPointerLeave)
+
     return () => {
       stopRaf()
       observer.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('scroll', onScroll)
+      section.removeEventListener('pointermove', onPointerMove)
+      section.removeEventListener('pointerleave', onPointerLeave)
       if (mouseRafId) cancelAnimationFrame(mouseRafId)
     }
   }, [])
@@ -357,6 +579,7 @@ export default function GlobeSection() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
       >
+        {/* Globe container — receives CSS 3D tilt + mouse parallax */}
         <div
           style={{
             width: 'min(88vw, 88vh)', height: 'min(88vw, 88vh)',
@@ -366,13 +589,27 @@ export default function GlobeSection() {
         >
           <div
             ref={globeWrapRef}
-            style={{ width: '100%', height: '100%', willChange: 'transform', transformOrigin: 'center center' }}
+            style={{
+              width: '100%', height: '100%',
+              position: 'relative',
+              willChange: 'transform',
+              transformOrigin: 'center center',
+            }}
           >
+            {/* Canvas — D3 renders land, graticule, connection lines */}
+            <canvas
+              ref={canvasRef}
+              aria-hidden
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+            />
+
+            {/* SVG overlay — city dots, labels, London pulse */}
             <svg
+              ref={svgOverlayRef}
               viewBox="0 0 600 600"
               role="img"
               aria-label="Globe showing Kelriva AI's global reach from London to major financial hubs"
-              style={{ width: '100%', height: '100%', transformOrigin: 'center center' }}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
             >
               <defs>
                 <radialGradient id="londonGlow" cx="50%" cy="50%" r="50%">
@@ -385,127 +622,62 @@ export default function GlobeSection() {
                 </radialGradient>
               </defs>
 
-              <circle cx={CX} cy={CY} r={GR} fill="rgba(13,10,8,0.94)" />
+              {/* Ambient glow around London */}
+              <circle cx={300} cy={300} r={70} fill="url(#londonGlow)" />
 
-              {RINGS.map(f => (
-                <circle key={f} cx={CX} cy={CY} r={f * GR}
-                  fill="none" stroke="rgba(214,53,69,0.055)" strokeWidth="1"
+              {/* London pulse group — translate updated each frame */}
+              <g ref={londonPulseRef} transform="translate(300, 300)">
+                {[1, 2].map(ring => (
+                  <circle
+                    key={`pulse-ring-${ring}`}
+                    cx={0} cy={0} r={10}
+                    fill="none" stroke="rgba(214,53,69,0.5)" strokeWidth="1"
+                  >
+                    <animate attributeName="r"       from="10" to="42" dur="2.8s" begin={`${ring * 1.4}s`} repeatCount="indefinite" />
+                    <animate attributeName="opacity" from="0.6" to="0"  dur="2.8s" begin={`${ring * 1.4}s`} repeatCount="indefinite" />
+                  </circle>
+                ))}
+                <circle cx={0} cy={0} r={7}   fill="#d63545" />
+                <circle cx={0} cy={0} r={3.5} fill="#0d0a08" />
+                <circle cx={0} cy={0} r={1.8} fill="#d63545" />
+              </g>
+
+              {/* City dots — cx/cy updated each frame via updateDotPositions */}
+              {CITIES.filter(c => c.id !== 'london').map(city => (
+                <circle
+                  key={`dot-${city.id}`}
+                  ref={(el: SVGCircleElement | null) => { if (el) dotRefs.current.set(city.id, el) }}
+                  cx={300} cy={300} r={city.r}
+                  fill="#d63545"
+                  fillOpacity="0.65"
+                  style={{
+                    opacity: 0,
+                    transition: 'opacity 0.35s ease, filter 0.3s ease',
+                  }}
                 />
               ))}
 
-              {RADIALS.map(a => {
-                const rad = (a * Math.PI) / 180
-                return (
-                  <line key={a}
-                    x1={CX} y1={CY}
-                    x2={CX + Math.sin(rad) * GR}
-                    y2={CY - Math.cos(rad) * GR}
-                    stroke="rgba(214,53,69,0.04)" strokeWidth="1"
-                  />
-                )
-              })}
-
-              {/* Connection lines — JS-controlled draw via scroll (Step 6) */}
-              {CITIES.map(city => {
-                const { x, y } = polar(city.angle, city.dist)
-                return (
-                  <path
-                    key={`line-${city.id}`}
-                    ref={(el: SVGPathElement | null) => { if (el) lineRefs.current.set(city.id, el) }}
-                    d={`M ${CX} ${CY} L ${x} ${y}`}
-                    pathLength="1"
-                    stroke="rgba(214,53,69,0.28)"
-                    strokeWidth="1"
-                    fill="none"
-                    style={{
-                      strokeDasharray: '1',
-                      strokeDashoffset: '1',
-                      transition: 'stroke-dashoffset 0.9s cubic-bezier(0.23,1,0.32,1)',
-                    }}
-                  />
-                )
-              })}
-
-              {/* Pulse travel dots — SMIL, always running */}
-              {CITIES.map((city, i) => {
-                const { x, y } = polar(city.angle, city.dist)
-                const pathD = `M ${CX} ${CY} L ${x} ${y}`
-                const dur   = (1.8 + city.dist * 1.4).toFixed(2)
-                const begin = (1.2 + i * 0.22).toFixed(2)
-                return (
-                  <circle key={`pulse-${city.id}`} r={2.2} fill="#d63545" fillOpacity="0.85">
-                    <animateMotion path={pathD} dur={`${dur}s`} begin={`${begin}s`} repeatCount="indefinite" />
-                  </circle>
-                )
-              })}
-
-              {/* City dots — JS-controlled opacity + scale (Step 6) */}
-              {CITIES.map(city => {
-                const { x, y } = polar(city.angle, city.dist)
-                return (
-                  <circle
-                    key={`dot-${city.id}`}
-                    ref={(el: SVGCircleElement | null) => { if (el) dotRefs.current.set(city.id, el) }}
-                    cx={x} cy={y} r={city.r}
-                    fill="#d63545"
-                    fillOpacity="0.65"
-                    style={{
-                      opacity: 0,
-                      transform: 'scale(1)',
-                      transition: 'opacity 0.35s ease, transform 0.3s cubic-bezier(0.23,1,0.32,1)',
-                    }}
-                  />
-                )
-              })}
-
-              {/* City labels — JS-controlled opacity (Step 6) */}
-              {CITIES.filter(c => LABEL_CITY_IDS.has(c.id)).map(city => {
-                const { x, y } = polar(city.angle, city.dist)
-                const dx     = city.labelSide === 'right' ? 8 : -8
-                const anchor = city.labelSide === 'right' ? 'start' : 'end'
-                return (
-                  <text
-                    key={`label-${city.id}`}
-                    ref={(el: SVGTextElement | null) => { if (el) labelRefs.current.set(city.id, el) }}
-                    x={x + dx} y={y + 1}
-                    textAnchor={anchor}
-                    dominantBaseline="middle"
-                    fill="rgba(107,85,72,0.6)"
-                    fontSize="8"
-                    fontFamily="'JetBrains Mono', monospace"
-                    letterSpacing="1.5"
-                    style={{
-                      textTransform: 'uppercase',
-                      opacity: 0,
-                      transition: 'opacity 0.4s ease',
-                    }}
-                  >
-                    {city.name.toUpperCase()}
-                  </text>
-                )
-              })}
-
-              <circle cx={CX} cy={CY} r={70} fill="url(#londonGlow)" />
-
-              {/* London pulse rings — SMIL, always running */}
-              {[1, 2].map(ring => (
-                <circle
-                  key={`pulse-ring-${ring}`}
-                  cx={CX} cy={CY} r={10}
-                  fill="none" stroke="rgba(214,53,69,0.5)" strokeWidth="1"
+              {/* City labels — x/y updated each frame */}
+              {CITIES.filter(c => LABEL_CITY_IDS.has(c.id)).map(city => (
+                <text
+                  key={`label-${city.id}`}
+                  ref={(el: SVGTextElement | null) => { if (el) labelRefs.current.set(city.id, el) }}
+                  x={308} y={301}
+                  textAnchor="start"
+                  dominantBaseline="middle"
+                  fill="rgba(107,85,72,0.6)"
+                  fontSize="8"
+                  fontFamily="'JetBrains Mono', monospace"
+                  letterSpacing="1.5"
+                  style={{ textTransform: 'uppercase', opacity: 0, transition: 'opacity 0.4s ease' }}
                 >
-                  <animate attributeName="r"       from="10" to="42" dur="2.8s" begin={`${ring * 1.4}s`} repeatCount="indefinite" />
-                  <animate attributeName="opacity" from="0.6" to="0"  dur="2.8s" begin={`${ring * 1.4}s`} repeatCount="indefinite" />
-                </circle>
+                  {city.name.toUpperCase()}
+                </text>
               ))}
 
-              {/* London dot — always visible, no JS control needed */}
-              <circle cx={CX} cy={CY} r={7}   fill="#d63545" />
-              <circle cx={CX} cy={CY} r={3.5} fill="#0d0a08" />
-              <circle cx={CX} cy={CY} r={1.8} fill="#d63545" />
-
+              {/* London label */}
               <text
-                x={CX} y={CY - 16}
+                x={300} y={284}
                 textAnchor="middle"
                 fill="rgba(237,229,220,0.55)"
                 fontSize="7.5"
@@ -515,93 +687,79 @@ export default function GlobeSection() {
               >
                 LONDON
               </text>
-
-              <circle cx={CX} cy={CY} r={GR} fill="none" stroke="rgba(214,53,69,0.18)" strokeWidth="1" />
-              <circle cx={CX} cy={CY} r={GR} fill="url(#edgeGlow)" />
             </svg>
+
+            {/* Card layer — absolute within globeWrapRef, so cards follow CSS 3D tilt */}
+            <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 6 }}>
+              {Object.entries(CARD_META).map(([id, meta]) => (
+                <div
+                  key={id}
+                  ref={(el: HTMLDivElement | null) => { if (el) cardOuterRefs.current.set(id, el) }}
+                  style={{ position: 'absolute', left: '50%', top: '50%' }}
+                >
+                  <div
+                    ref={(el: HTMLDivElement | null) => { if (el) cardInnerRefs.current.set(id, el) }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      flexDirection: 'row',
+                      opacity: 0,
+                      transition: 'opacity 0.4s ease, transform 0.4s cubic-bezier(0.23,1,0.32,1)',
+                      transform: CARD_BASE.right + CARD_SLIDE.right,
+                    }}
+                  >
+                    <div
+                      ref={(el: HTMLDivElement | null) => { if (el) connectorRefs.current.set(id, el) }}
+                      style={{
+                        flexShrink: 0,
+                        width: 10, height: 1,
+                        background: 'rgba(214,53,69,0.35)',
+                        transformOrigin: 'left center',
+                      }}
+                    />
+                    <div style={{
+                      background: 'rgba(13,10,8,0.88)',
+                      border: '1px solid rgba(214,53,69,0.22)',
+                      backdropFilter: 'blur(8px)',
+                      padding: '9px 13px',
+                      borderRadius: 2,
+                      minWidth: 130,
+                    }}>
+                      <div style={{
+                        fontFamily: 'var(--font-jetbrains), monospace',
+                        fontSize: '.58rem',
+                        letterSpacing: '.15em',
+                        color: '#d63545',
+                        textTransform: 'uppercase',
+                        marginBottom: 3,
+                      }}>
+                        {meta.label}
+                      </div>
+                      <div style={{
+                        fontFamily: 'var(--font-instrument), sans-serif',
+                        fontSize: '.88rem',
+                        fontWeight: 600,
+                        color: '#ede5dc',
+                      }}>
+                        {meta.city}
+                      </div>
+                      <div style={{
+                        fontFamily: 'var(--font-instrument), sans-serif',
+                        fontSize: '.72rem',
+                        color: 'rgba(107,85,72,0.75)',
+                        marginTop: 2,
+                      }}>
+                        {meta.detail}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Card layer — city info cards (Step 7) */}
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            width: 'min(88vw, 88vh)', height: 'min(88vw, 88vh)',
-            left: '50%', top: '50%',
-            transform: 'translate(-50%, -50%)',
-            pointerEvents: 'none', zIndex: 6,
-          }}
-        >
-          {CARD_CITIES.map(card => (
-            <div
-              key={card.id}
-              ref={(el: HTMLDivElement | null) => { if (el) cardRefs.current.set(card.id, el) }}
-              style={{
-                position: 'absolute',
-                display: 'flex',
-                alignItems: 'center',
-                flexDirection: card.side === 'below' ? 'column' : card.side === 'left' ? 'row-reverse' : 'row',
-                opacity: 0,
-                transition: 'opacity 0.4s ease, transform 0.4s cubic-bezier(0.23,1,0.32,1)',
-                transform: CARD_BASE[card.side] + CARD_SLIDE[card.side],
-                ...(card.side === 'left'
-                  ? { right: `${100 - card.nodeXpct}%`, top: `${card.nodeYpct}%` }
-                  : { left: `${card.nodeXpct}%`, top: `${card.nodeYpct}%` }
-                ),
-              }}
-            >
-              <div
-                ref={(el: HTMLDivElement | null) => { if (el) connRefs.current.set(card.id, el) }}
-                style={{
-                  flexShrink: 0,
-                  transition: 'transform 0.35s cubic-bezier(0.23,1,0.32,1)',
-                  ...(card.side === 'below'
-                    ? { width: 1, height: 10, background: 'rgba(214,53,69,0.35)', transform: 'scaleY(0)', transformOrigin: 'top center' }
-                    : { width: 10, height: 1, background: 'rgba(214,53,69,0.35)', transform: 'scaleX(0)', transformOrigin: card.side === 'left' ? 'right center' : 'left center' }
-                  ),
-                }}
-              />
-              <div style={{
-                background: 'rgba(13,10,8,0.88)',
-                border: '1px solid rgba(214,53,69,0.22)',
-                backdropFilter: 'blur(8px)',
-                padding: '9px 13px',
-                borderRadius: 2,
-                minWidth: 130,
-              }}>
-                <div style={{
-                  fontFamily: 'var(--font-jetbrains), monospace',
-                  fontSize: '.58rem',
-                  letterSpacing: '.15em',
-                  color: '#d63545',
-                  textTransform: 'uppercase',
-                  marginBottom: 3,
-                }}>
-                  {card.label}
-                </div>
-                <div style={{
-                  fontFamily: 'var(--font-instrument), sans-serif',
-                  fontSize: '.88rem',
-                  fontWeight: 600,
-                  color: '#ede5dc',
-                }}>
-                  {card.city}
-                </div>
-                <div style={{
-                  fontFamily: 'var(--font-instrument), sans-serif',
-                  fontSize: '.72rem',
-                  color: 'rgba(107,85,72,0.75)',
-                  marginTop: 2,
-                }}>
-                  {card.detail}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Left-edge scroll progress thread + city counter (Step 9) */}
+        {/* Left-edge scroll progress thread + city counter */}
         <div
           aria-hidden
           style={{
@@ -638,7 +796,7 @@ export default function GlobeSection() {
           </div>
         </div>
 
-        {/* Finale tagline (Step 8) */}
+        {/* Finale tagline */}
         <div
           ref={finaleRef}
           style={{
