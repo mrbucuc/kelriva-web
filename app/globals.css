@@ -12,6 +12,7 @@
   --color-cgreen: #00e09c;
   --color-camber: #f5b642;
   --color-violet: #a78bfa;
+  --color-ink-warm: #100d0b;
 
   --font-sans:  'Instrument Sans', 'Bricolage Grotesque', sans-serif;
   --font-serif: 'Cormorant Garamond', serif;
@@ -115,6 +116,24 @@ a { text-decoration: none; color: inherit; }
   100% { transform: translate(1%,0); }
 }
 
+/* Clip-path text line reveal */
+@keyframes textReveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
+}
+
+/* Subtle float for overlays */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* Scroll progress bar fill */
+@keyframes progressPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(214,53,69,0.5); }
+  50%      { box-shadow: 0 0 14px rgba(214,53,69,0.8); }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #0d0a08; }
@@ -138,3 +157,12 @@ a { text-decoration: none; color: inherit; }
   transition: top .2s;
 }
 .skip-link:focus { top: 1rem; }
+
+/* Reduced motion — all animations skip to final state */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
