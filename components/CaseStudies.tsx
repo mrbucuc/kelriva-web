@@ -1,19 +1,21 @@
 'use client'
 
-import { motion, type Variants } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+import { counterAnimation, checkReducedMotion } from '@/lib/animations'
 
 const CASES = [
   {
     index: '01',
     tag: 'Corporate Coaching · AI Matching',
-    title: 'AI-Assisted\nCoach Matching',
+    title: 'AI-Assisted Coach Matching',
     client: 'bettercoach',
     status: 'Live',
     color: '#d63545',
     metrics: [
-      { value: '7 days → seconds', label: 'Matching time' },
-      { value: 'First time', label: 'Quality measurable' },
-      { value: 'Scaled', label: 'Without extra headcount' },
+      { display: '7 days → seconds', label: 'Processing Time Reduction', isText: true },
+      { display: '100%', label: 'Match Quality Measurable', isText: false, from: 0, to: 100, suffix: '%' },
+      { display: '0', label: 'Extra Headcount to Scale', isText: false, from: 0, to: 0, suffix: '' },
     ],
     challenge:
       'A corporate coaching provider matched clients to coaches entirely by hand — reviewing enquiries, interpreting needs, and searching profiles across language, seniority, location, and topic. The process was slow, inconsistent, and constrained by strict data privacy requirements.',
@@ -25,14 +27,14 @@ const CASES = [
   {
     index: '02',
     tag: 'Intelligent Document Processing · Client Onboarding',
-    title: 'IDP-Powered\nClient Setup',
+    title: 'IDP-Powered Client Setup',
     client: 'Enterprise SaaS',
     status: 'Delivered',
     color: '#f5b642',
     metrics: [
-      { value: 'Days → hours', label: 'Setup preparation' },
-      { value: 'Zero missed steps', label: 'Dependency mapping' },
-      { value: 'Consistent', label: 'Across every client' },
+      { display: 'Days → hours', label: 'Setup Preparation Time', isText: true },
+      { display: '0', label: 'Missed Steps', isText: false, from: 0, to: 0, suffix: '' },
+      { display: '100%', label: 'Consistent Across Clients', isText: false, from: 0, to: 100, suffix: '%' },
     ],
     challenge:
       'Onboarding new clients onto a complex software platform required teams to manually read through PDFs, spreadsheets, emails, and discovery call notes — then interpret requirements, identify gaps, and decide what to configure first.',
@@ -43,53 +45,51 @@ const CASES = [
   },
 ]
 
-const fadeUp: Variants = {
-  hidden:  { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.23, 1, 0.32, 1] } },
-}
-
 export default function CaseStudies() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const [entered, setEntered]   = useState(false)
+
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    if (checkReducedMotion()) { setEntered(true); return }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setEntered(true); observer.disconnect() } },
+      { threshold: 0.08 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <section id="case-studies" style={{ padding: '8rem 3rem' }}>
+    <section
+      id="case-studies"
+      ref={sectionRef}
+      style={{ padding: '9rem 3rem', background: 'var(--color-ink)' }}
+    >
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-        {/* Header */}
+        {/* Section header */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-          style={{
-            fontFamily: 'var(--font-jetbrains), monospace',
-            fontSize: '.66rem', color: '#d63545',
-            letterSpacing: '.22em', textTransform: 'uppercase',
-            marginBottom: '.9rem', display: 'flex', alignItems: 'center', gap: '.6rem',
-          }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={entered ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.65, ease: [0.23, 1, 0.32, 1] }}
+          style={{ marginBottom: '5.5rem' }}
         >
-          <span style={{ opacity: .5 }}>//</span> Proof of work
+          <div className="t-mono" style={{ color: '#6b5548', marginBottom: '1.2rem' }}>
+            Proof of work
+          </div>
+          <h2 className="t-section" style={{ color: '#ffffff', margin: 0 }}>
+            Systems already<br />
+            <em>running in the real world.</em>
+          </h2>
         </motion.div>
 
-        <motion.h2
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.65, delay: 0.08, ease: [0.23, 1, 0.32, 1] }}
-          style={{
-            fontFamily: 'var(--font-cormorant), serif',
-            fontSize: 'clamp(2rem,4.5vw,3.6rem)',
-            fontWeight: 300, fontStyle: 'italic',
-            color: '#ffffff', lineHeight: 1.1,
-            letterSpacing: '-.02em', marginBottom: '5rem',
-          }}
-        >
-          Systems already<br />
-          <em>running in the real world.</em>
-        </motion.h2>
-
-        {/* Case studies — editorial spread layout */}
+        {/* Case study spreads */}
         <div>
           {CASES.map((c, i) => (
-            <CaseSpread key={c.index} {...c} delay={i * 0.1} last={i === CASES.length - 1} />
+            <CaseSpread key={c.index} {...c} delay={i * 0.1} last={i === CASES.length - 1} entered={entered} />
           ))}
         </div>
 
@@ -98,9 +98,9 @@ export default function CaseStudies() {
       <style>{`
         @media (max-width: 900px) {
           section#case-studies { padding: 5rem 1.5rem !important; }
-          .cs-upper { grid-template-columns: 1fr !important; }
-          .cs-metrics { grid-template-columns: 1fr 1fr !important; }
-          .cs-body { grid-template-columns: 1fr !important; }
+          .cs-split { grid-template-columns: 1fr !important; }
+          .cs-metrics { grid-template-columns: 1fr !important; }
+          .cs-body { grid-template-columns: 1fr !important; padding-left: 0 !important; }
         }
         @media (max-width: 560px) {
           .cs-metrics { grid-template-columns: 1fr !important; }
@@ -112,119 +112,98 @@ export default function CaseStudies() {
 
 function CaseSpread({
   index, tag, title, client, status, color,
-  metrics, challenge, solution, impact, delay, last,
-}: typeof CASES[0] & { delay: number; last: boolean }) {
+  metrics, challenge, solution, impact, delay, last, entered,
+}: typeof CASES[0] & { delay: number; last: boolean; entered: boolean }) {
+
   return (
     <motion.article
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ delay }}
+      initial={{ opacity: 0 }}
+      animate={entered ? { opacity: 1 } : {}}
+      transition={{ duration: 0.5, delay, ease: [0.23, 1, 0.32, 1] }}
       style={{
-        borderTop: '1px solid rgba(214,53,69,.1)',
-        paddingTop: '3.5rem',
-        paddingBottom: last ? 0 : '4rem',
-        borderBottom: last ? 'none' : '1px solid rgba(214,53,69,.05)',
-        marginBottom: last ? 0 : '0',
+        borderTop: `1px solid ${color}22`,
+        paddingTop: '4rem',
+        paddingBottom: last ? 0 : '5rem',
         position: 'relative',
       }}
     >
-      {/* Upper section: index + title / tag + status */}
+      {/* Split enter: left ← / right → */}
       <div
-        className="cs-upper"
+        className="cs-split"
         style={{
           display: 'grid',
-          gridTemplateColumns: '72px 1fr auto',
-          gap: '0 3rem',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '0 4rem',
           alignItems: 'start',
-          marginBottom: '2.5rem',
+          marginBottom: '3.5rem',
         }}
       >
-        {/* Large index number */}
-        <div style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: '.68rem', color,
-          letterSpacing: '.14em',
-          paddingTop: '.3rem',
-          opacity: .8,
-        }}>{index}</div>
-
-        {/* Title + tag */}
-        <div>
-          <div style={{
-            fontFamily: 'var(--font-jetbrains), monospace',
-            fontSize: '.58rem', color: 'rgba(107,85,72,.6)',
-            letterSpacing: '.14em', textTransform: 'uppercase',
-            marginBottom: '.8rem',
-          }}>{tag}</div>
+        {/* Left half */}
+        <motion.div
+          initial={{ opacity: 0, x: -60 }}
+          animate={entered ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.7, delay: delay + 0.05, ease: [0.23, 1, 0.32, 1] }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', marginBottom: '1.2rem' }}>
+            <span className="t-mono" style={{ color: 'rgba(107,85,72,0.6)', fontSize: '.65rem' }}>
+              {index}
+            </span>
+            <span className="t-mono" style={{ color: 'rgba(107,85,72,0.6)', fontSize: '.65rem' }}>
+              {tag}
+            </span>
+          </div>
           <h3 style={{
             fontFamily: 'var(--font-cormorant), serif',
-            fontStyle: 'italic', fontWeight: 300,
-            fontSize: 'clamp(1.8rem,3vw,2.8rem)',
-            color: '#ffffff', lineHeight: 1.08,
+            fontStyle: 'italic',
+            fontWeight: 300,
+            fontSize: 'clamp(1.8rem, 3vw, 2.8rem)',
+            color: '#ffffff',
+            lineHeight: 1.08,
             letterSpacing: '-.02em',
-            whiteSpace: 'pre-line',
-            margin: 0,
+            margin: '0 0 .6rem',
           }}>{title}</h3>
-        </div>
+          <div className="t-mono" style={{ color, fontSize: '.65rem' }}>
+            {client}
+          </div>
+        </motion.div>
 
-        {/* Status badge */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '.4rem',
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: '.58rem', color: '#00e09c',
-          letterSpacing: '.12em', textTransform: 'uppercase',
-          paddingTop: '.3rem',
-          whiteSpace: 'nowrap',
-        }}>
-          <span style={{
-            width: 5, height: 5, borderRadius: '50%',
-            background: '#00e09c',
-            display: 'inline-block',
-            flexShrink: 0,
-            animation: 'statusBlink 2.4s ease infinite',
-          }} />
-          {status}
-        </div>
-      </div>
+        {/* Right half — status + metrics hero */}
+        <motion.div
+          initial={{ opacity: 0, x: 60 }}
+          animate={entered ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.7, delay: delay + 0.1, ease: [0.23, 1, 0.32, 1] }}
+        >
+          {/* Status */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '.5rem',
+            marginBottom: '2rem',
+          }}>
+            <span style={{
+              width: 5, height: 5, borderRadius: '50%',
+              background: '#00e09c',
+              display: 'inline-block',
+              animation: 'statusBlink 2.4s ease infinite',
+              flexShrink: 0,
+            }} />
+            <span className="t-mono" style={{ color: '#00e09c', fontSize: '.65rem' }}>
+              {status}
+            </span>
+          </div>
 
-      {/* Metrics strip */}
-      <div
-        className="cs-metrics"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '1px',
-          marginBottom: '2.75rem',
-          background: `rgba(214,53,69,.06)`,
-          borderTop: `1px solid ${color}22`,
-          borderBottom: `1px solid ${color}22`,
-        }}
-      >
-        {metrics.map((m, mi) => (
+          {/* Metrics — hero size */}
           <div
-            key={m.label}
+            className="cs-metrics"
             style={{
-              padding: '1.1rem 1.5rem',
-              borderLeft: mi > 0 ? `1px solid ${color}18` : 'none',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3,1fr)',
+              gap: '1.5rem',
             }}
           >
-            <div style={{
-              fontFamily: 'var(--font-jetbrains), monospace',
-              fontSize: '.9rem', color,
-              fontWeight: 400, marginBottom: '.3rem',
-              letterSpacing: '-.01em',
-            }}>{m.value}</div>
-            <div style={{
-              fontFamily: 'var(--font-jetbrains), monospace',
-              fontSize: '.56rem', color: 'rgba(107,85,72,.7)',
-              letterSpacing: '.16em', textTransform: 'uppercase',
-            }}>{m.label}</div>
+            {metrics.map((m, mi) => (
+              <MetricBlock key={m.label} {...m} color={color} entered={entered} delay={delay + 0.2 + mi * 0.08} />
+            ))}
           </div>
-        ))}
+        </motion.div>
       </div>
 
       {/* Three-column body */}
@@ -234,7 +213,9 @@ function CaseSpread({
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr',
           gap: '3rem',
-          paddingLeft: 'calc(72px + 3rem)',
+          paddingLeft: '0',
+          borderTop: '1px solid rgba(214,53,69,0.06)',
+          paddingTop: '2.5rem',
         }}
       >
         {[
@@ -243,20 +224,70 @@ function CaseSpread({
           { label: 'Impact',    body: impact    },
         ].map(({ label, body }) => (
           <div key={label}>
-            <div style={{
-              fontFamily: 'var(--font-jetbrains), monospace',
-              fontSize: '.58rem', color,
-              letterSpacing: '.2em', textTransform: 'uppercase',
-              marginBottom: '.9rem',
-              opacity: .8,
-            }}>{label}</div>
-            <p style={{
-              fontSize: '.85rem', color: 'rgba(154,122,106,.75)',
-              lineHeight: 1.85, margin: 0,
-            }}>{body}</p>
+            <div className="t-mono" style={{ color, fontSize: '.65rem', marginBottom: '.9rem', opacity: .8 }}>
+              {label}
+            </div>
+            <p className="t-body" style={{ color: 'rgba(154,122,106,0.75)', margin: 0 }}>
+              {body}
+            </p>
           </div>
         ))}
       </div>
     </motion.article>
+  )
+}
+
+type MetricBlockProps = {
+  display: string
+  label: string
+  isText: boolean
+  from?: number
+  to?: number
+  suffix?: string
+  color: string
+  entered: boolean
+  delay: number
+}
+
+function MetricBlock({ display, label, isText, from = 0, to = 0, suffix = '', color, entered, delay }: MetricBlockProps) {
+  const [value, setValue]   = useState(isText ? display : String(from) + suffix)
+  const [glowing, setGlowing] = useState(false)
+  const fired = useRef(false)
+
+  useEffect(() => {
+    if (!entered || fired.current || isText) return
+    fired.current = true
+
+    const ms = checkReducedMotion() ? 0 : delay * 1000
+    const t = setTimeout(() => {
+      const cleanup = counterAnimation(from, to, 1400, (v) => {
+        setValue(Math.round(v) + suffix)
+      }, () => {
+        setGlowing(true)
+        setTimeout(() => setGlowing(false), 800)
+      })
+      return cleanup
+    }, ms)
+    return () => clearTimeout(t)
+  }, [entered, isText, from, to, suffix, delay])
+
+  return (
+    <div>
+      <div
+        className="t-metric"
+        style={{
+          color,
+          textShadow: glowing ? `0 0 30px ${color}99` : 'none',
+          transition: 'text-shadow 800ms ease',
+          marginBottom: '.4rem',
+          lineHeight: 1,
+        }}
+      >
+        {value}
+      </div>
+      <div className="t-mono" style={{ color: '#6b5548', fontSize: '.6rem' }}>
+        {label}
+      </div>
+    </div>
   )
 }
