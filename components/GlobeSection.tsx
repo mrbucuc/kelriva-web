@@ -323,12 +323,59 @@ export default function GlobeSection() {
           textAlign: 'center', zIndex: 4, pointerEvents: 'none',
         }}
       >
+        <div className="t-mono" style={{ color: 'rgba(214,53,69,.55)', fontSize: '.62rem' }}>
+          Global Infrastructure
+        </div>
+      </motion.div>
+
+      {/* ── Value proposition overlay ─────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 1.0, ease: [0.23, 1, 0.32, 1] }}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 5,
+          textAlign: 'center',
+          pointerEvents: 'none',
+          animation: 'float 6s ease-in-out infinite',
+          animationDelay: '1.5s',
+        }}
+      >
+        {/* Frosted pill behind text */}
         <div style={{
-          fontFamily: 'var(--font-jetbrains), monospace',
-          fontSize: '.62rem', color: 'rgba(214,53,69,.55)',
-          letterSpacing: '.28em', textTransform: 'uppercase',
+          background: 'rgba(13,10,8,0.42)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          padding: '2rem 3rem',
+          border: '1px solid rgba(214,53,69,0.1)',
         }}>
-          Kelriva AI · Enterprise AI Consultancy
+          <div style={{
+            fontFamily: 'var(--font-cormorant), serif',
+            fontStyle: 'italic',
+            fontWeight: 300,
+            fontSize: 'clamp(1.6rem, 3vw, 2.8rem)',
+            color: 'rgba(237,229,220,0.9)',
+            lineHeight: 1.2,
+            letterSpacing: '-.02em',
+            marginBottom: '.25rem',
+          }}>
+            Built in London.
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-cormorant), serif',
+            fontStyle: 'italic',
+            fontWeight: 300,
+            fontSize: 'clamp(1.6rem, 3vw, 2.8rem)',
+            color: '#d63545',
+            lineHeight: 1.2,
+            letterSpacing: '-.02em',
+          }}>
+            Deployed everywhere.
+          </div>
         </div>
       </motion.div>
 
