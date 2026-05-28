@@ -105,6 +105,8 @@ export default function ProofNumbers() {
   return (
     <div
       ref={wrapRef}
+      role="region"
+      aria-label="Kelriva AI credentials"
       style={{
         borderTop:    '1px solid rgba(214,53,69,0.1)',
         borderBottom: '1px solid rgba(214,53,69,0.1)',
@@ -116,6 +118,11 @@ export default function ProofNumbers() {
       onMouseEnter={() => { pausedRef.current = true  }}
       onMouseLeave={() => { pausedRef.current = false }}
     >
+      {/* Screen-reader summary — hidden visually, announced once */}
+      <p className="sr-only">
+        Fixed-Fee Delivery · 48h Proposal Turnaround · London, United Kingdom ·
+        UK-Registered Company · AWS-Powered Infrastructure · Model-Agnostic Architecture
+      </p>
       {/* Left vignette */}
       <div style={{
         position: 'absolute', left: 0, top: 0, bottom: 0, width: 140,
@@ -129,9 +136,10 @@ export default function ProofNumbers() {
         zIndex: 2, pointerEvents: 'none',
       }} />
 
-      {/* Track */}
+      {/* Track — aria-hidden, SR content provided above */}
       <div
         ref={trackRef}
+        aria-hidden="true"
         style={{
           display: 'inline-flex',
           alignItems: 'center',
