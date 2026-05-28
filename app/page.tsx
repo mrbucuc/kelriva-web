@@ -4,9 +4,6 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import GrainOverlay from '@/components/GrainOverlay'
 import Nav from '@/components/Nav'
-// Statically imported — server-rendered into initial HTML so LCP text is visible
-// as soon as CSS parses, before any JS runs
-import GlobeValueProp from '@/components/GlobeValueProp'
 // GlobeSection: static import so SVG is SSR'd and visible at first paint (LCP = FCP)
 // Globe wrapper uses globeIn (scale-only, no opacity) so it's the LCP element at CSS-parse time
 import GlobeSection from '@/components/GlobeSection'
@@ -48,12 +45,8 @@ export default function Page() {
     <>
       <GrainOverlay />
       <Nav onBookCall={openChat} />
-      {/* GlobeValueProp is statically imported (SSR'd) — becomes visible at CSS-parse time.
-          GlobeSection is ssr:false so the SVG doesn't bloat the initial HTML payload. */}
-      <div style={{ position: 'relative', height: '100vh' }}>
-        <GlobeSection />
-        <GlobeValueProp />
-      </div>
+      {/* GlobeSection owns its own 500vh scroll-pinned container */}
+      <GlobeSection />
       <Hero onBookCall={openChat} />
       <QuoteStrip />
       <Services />
